@@ -1,0 +1,44 @@
+# core
+ollama
+fastapi
+uvicorn[standard]
+streamlit
+sqlalchemy
+pydantic
+python-multipart
+python-dotenv
+
+# recognition
+opencv-contrib-python
+pillow
+numpy
+
+# cnn fallback
+torch
+torchvision
+
+# analytics
+scipy
+scikit-learn
+pandas
+
+# agent / math
+sympy
+jsonschema
+
+# pdf + sheet generation
+reportlab
+
+# dev
+pytest
+pytest-cov
+ruff
+black
+ipython
+jupyter
+
+# optional / nice-to-have
+matplotlib
+seaborn
+tqdm
+httpx
