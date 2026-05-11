@@ -246,7 +246,7 @@ if __name__ == "__main__":
     students = [f"Student {i+1:03d}" for i in range(120)]
     cells = generate_roster_pdf(
         students=students,
-        num_items=15,
+        num_items=26,
         output_path="roster_test.pdf",
         cell_metadata_path="roster_test_cells.json",
         quiz_title="JHS 2 Mathematics · Fractions Quiz",
