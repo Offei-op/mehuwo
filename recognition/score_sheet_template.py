@@ -3,10 +3,16 @@
 One row per student, one tick column per item. Fiducials at all four
 corners enable perspective rectification by the recognition pipeline.
 Auto-paginates across multiple A4 pages when the class is large.
+
+v2 change: every sheet now carries a quiz_id (auto-generated from the
+hash of students + num_items + quiz_title if not supplied). The id is
+printed on every page and included in the cell-metadata JSON so the
+recognition pipeline can refuse to apply the wrong metadata to a sheet.
 """
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 from dataclasses import dataclass, asdict
@@ -41,6 +47,15 @@ class Cell:
     y_mm: float
     w_mm: float
     h_mm: float
+
+
+def _make_quiz_id(students: list[str], num_items: int, quiz_title: str) -> str:
+    """Deterministic id from the inputs that define what's printed on the sheet.
+    Same students + items + title -> same id. Truncated to 12 hex chars."""
+    h = hashlib.sha256()
+    payload = f"{quiz_title}|{num_items}|{'|'.join(students)}".encode()
+    h.update(payload)
+    return "q_" + h.hexdigest()[:12]
 
 
 def _aruco_png(marker_id: int, px: int = 200) -> bytes:
@@ -81,9 +96,10 @@ def _draw_page(
     quiz_title: str,
     class_label: str,
     school_name: str,
+    quiz_id: str,
 ) -> list[Cell]:
 
-    fiducial_ids = _draw_fiducials(c, page_idx)
+    _draw_fiducials(c, page_idx)
 
     # Table bounds in mm-from-bottom-left (reportlab native)
     table_top_mm    = SHEET_H_MM - MARGIN_MM - FIDUCIAL_SIZE_MM - 2.0
@@ -107,7 +123,7 @@ def _draw_page(
 
     if row_h_mm < MIN_ROW_H_MM or col_w_mm < 5.0:
         print(f"warning: small cells on page {page_idx + 1} "
-              f"({col_w_mm:.1f}×{row_h_mm:.1f}mm)")
+              f"({col_w_mm:.1f}x{row_h_mm:.1f}mm)")
 
     to_pt = lambda x_mm: x_mm * mm
 
@@ -121,10 +137,15 @@ def _draw_page(
     c.setFont("Helvetica-Oblique", 8)
     c.drawString(to_pt(table_left_mm + 2), to_pt(header_top_mm - 18),
                  "Tick = correct.  Leave blank = wrong or unanswered.")
+
+    # Right-side header: page number + quiz_id stacked
+    c.setFont("Helvetica", 8)
     if n_pages > 1:
-        c.setFont("Helvetica", 8)
         c.drawRightString(to_pt(table_right_mm - 2), to_pt(header_top_mm - 6),
                           f"Page {page_idx + 1} of {n_pages}")
+    c.setFont("Helvetica", 7)
+    c.drawRightString(to_pt(table_right_mm - 2), to_pt(header_top_mm - 18),
+                      f"quiz_id: {quiz_id}")
 
     # Column headers
     c.setFont("Helvetica-Bold", 8)
@@ -165,7 +186,7 @@ def _draw_page(
         c.drawCentredString(to_pt(table_left_mm + IDX_COL_W_MM / 2),
                             to_pt(row_mid_mm - 2),
                             str(global_idx + 1))
-        display = name if len(name) <= max_name_chars else name[:max_name_chars - 1] + "…"
+        display = name if len(name) <= max_name_chars else name[:max_name_chars - 1] + "..."
         c.drawString(to_pt(table_left_mm + IDX_COL_W_MM + 1.5),
                      to_pt(row_mid_mm - 2), display)
 
@@ -191,17 +212,26 @@ def generate_roster_pdf(
     num_items: int,
     output_path: str | Path,
     *,
-    quiz_title: str = "Mehuwo · Master Roster",
+    quiz_title: str = "Mehuwo - Master Roster",
     class_label: str = "",
     school_name: str = "",
+    quiz_id: str | None = None,
     cell_metadata_path: str | Path | None = None,
     students_per_page: int = 40,
-) -> list[Cell]:
-    """Generate the master roster PDF. Returns the cell metadata list."""
+) -> tuple[str, list[Cell]]:
+    """Generate the master roster PDF.
+
+    Returns (quiz_id, cells). The quiz_id is auto-generated from the hash of
+    (quiz_title, num_items, students) when not supplied; pass an explicit
+    string for stable ids across regenerations with the same inputs.
+    """
     if not students:
         raise ValueError("students must be non-empty")
     if num_items < 1:
         raise ValueError("num_items must be >= 1")
+
+    if quiz_id is None:
+        quiz_id = _make_quiz_id(students, num_items, quiz_title)
 
     out = Path(output_path)
     c = canvas.Canvas(str(out), pagesize=A4)
@@ -216,7 +246,7 @@ def generate_roster_pdf(
         indexed = [(global_offset + j, name) for j, name in enumerate(page_students)]
         all_cells.extend(_draw_page(
             c, p_idx, n_pages, indexed, num_items,
-            quiz_title, class_label, school_name,
+            quiz_title, class_label, school_name, quiz_id,
         ))
         if p_idx < n_pages - 1:
             c.showPage()
@@ -225,10 +255,15 @@ def generate_roster_pdf(
 
     if cell_metadata_path is not None:
         Path(cell_metadata_path).write_text(json.dumps({
+            "quiz_id": quiz_id,
+            "quiz_title": quiz_title,
+            "class_label": class_label,
+            "school_name": school_name,
             "sheet_w_mm": SHEET_W_MM,
             "sheet_h_mm": SHEET_H_MM,
             "aruco_dict": "DICT_4X4_50",
             "fiducial_size_mm": FIDUCIAL_SIZE_MM,
+            "fiducial_margin_mm": MARGIN_MM,
             "fiducial_ids_per_page": {
                 str(p): {"tl": 4 * p, "tr": 4 * p + 1,
                          "bl": 4 * p + 2, "br": 4 * p + 3}
@@ -236,23 +271,25 @@ def generate_roster_pdf(
             },
             "n_pages": n_pages,
             "num_items": num_items,
+            "n_students": len(students),
             "cells": [asdict(cell) for cell in all_cells],
         }, indent=2))
 
-    return all_cells
+    return quiz_id, all_cells
 
 
 if __name__ == "__main__":
     students = [f"Student {i+1:03d}" for i in range(120)]
-    cells = generate_roster_pdf(
+    quiz_id, cells = generate_roster_pdf(
         students=students,
         num_items=26,
         output_path="roster_test.pdf",
         cell_metadata_path="roster_test_cells.json",
-        quiz_title="JHS 2 Mathematics · Fractions Quiz",
+        quiz_title="JHS 2 Mathematics - Fractions Quiz",
         class_label="JHS 2A",
         school_name="Sample Public JHS",
         students_per_page=40,
     )
-    print(f"wrote roster_test.pdf with {len(cells)} cells across "
-          f"{max(c.page_idx for c in cells) + 1} page(s)")
+    n_pages = max(c.page_idx for c in cells) + 1
+    print(f"wrote roster_test.pdf  quiz_id={quiz_id}  "
+          f"{len(cells)} cells across {n_pages} page(s)")
