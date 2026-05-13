@@ -150,11 +150,67 @@ def load_bank(path: Path) -> dict:
         return json.load(f)
 
 
+def normalize_item(item: dict) -> dict:
+    """Normalise an item to the legacy shape the rest of this script
+    expects: `options` is a list of strings and `correct_answer` is the
+    string value of the correct option.
+
+    Accepts two input formats:
+
+      Legacy (hand-authored v1 bank):
+        {"options": ["12", "144", "132", "140"], "correct_answer": "144"}
+
+      Dict (bank_generator.py output):
+        {"options": {"A": "12", "B": "144", "C": "132", "D": "140"},
+         "correct_option": "B"}
+
+    Dict options are flattened by sorted key (A, B, C, D), so the visible
+    letter order on the printed sheet matches the JSON. Also strips
+    `target_nodes` when it's null (the v2 single-skill convention) so the
+    key renderer's `", ".join(...)` doesn't crash on None.
+    """
+    new_item = dict(item)
+    opts = item.get("options")
+
+    if isinstance(opts, dict):
+        letters = sorted(opts.keys())                  # ['A','B','C','D']
+        new_item["options"] = [opts[L] for L in letters]
+        correct_letter = item.get("correct_option")
+        if correct_letter is None or correct_letter not in opts:
+            raise ValueError(
+                f"Item {item.get('item_id', '?')!r}: dict-form options but "
+                f"correct_option is missing or invalid ({correct_letter!r})"
+            )
+        new_item["correct_answer"] = opts[correct_letter]
+    elif isinstance(opts, list):
+        if "correct_answer" not in item:
+            raise ValueError(
+                f"Item {item.get('item_id', '?')!r}: list-form options but "
+                f"no correct_answer field"
+            )
+    else:
+        raise ValueError(
+            f"Item {item.get('item_id', '?')!r}: unsupported options type "
+            f"{type(opts).__name__}"
+        )
+
+    # bank_generator.py writes target_nodes=null on single-skill items.
+    # The answer-key renderer does ", ".join(item["target_nodes"]) which
+    # would raise on None; drop the field so the `if "target_nodes" in item`
+    # branch falls through to target_node.
+    if new_item.get("target_nodes") is None:
+        new_item.pop("target_nodes", None)
+
+    return new_item
+
+
 def select_items(bank: dict, include: Iterable[str]) -> list[dict]:
-    """Concatenate the requested categories in order."""
+    """Concatenate the requested categories in order, normalising each
+    item so downstream code sees a single canonical shape."""
     items: list[dict] = []
     for key in include:
-        items.extend(bank.get(key, []))
+        for raw in bank.get(key, []):
+            items.append(normalize_item(raw))
     return items
 
 
