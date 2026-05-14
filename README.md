@@ -609,6 +609,6 @@ Test coverage is currently shallow — a single smoke test for tool calling, plu
 
 ## Acknowledgements
 
-Designed and built by **Papa Offei**.
+Designed and built by **Papa Offei Obuobisah Bekoe**.
 
 The cognitive-diagnostic framing draws on standard KST and DINA-style ideas — items annotated with q-vectors against a skill graph, mastery inferred per skill, students clustered into pedagogically interpretable groups, remediation sequenced through the prerequisite DAG. The novelty here is the agentic, arithmetically-verified item authoring loop and the deliberate localisation to the Ghanaian classroom.
