@@ -1,0 +1,289 @@
+/* ============================================================
+   mehuwo — Streamlit UI styles
+   Palette inspired by the project's hand-drawn skill graph:
+   muted forest greens, warm amber, dusty plum, on warm cream.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:        #FBF8F2;
+  --bg-soft:   #F2ECE0;
+  --bg-card:   #FFFFFF;
+  --ink:       #1F1A14;
+  --ink-soft:  #5C5346;
+  --rule:      #E0D7C5;
+
+  --green:     #2D4A2B;   /* primary */
+  --green-2:   #5C8259;
+  --green-3:   #A8C97A;   /* mastered band */
+  --amber:     #D49C3C;
+  --amber-3:   #E5C067;   /* foundation band */
+  --plum:      #6E4B7D;
+  --plum-3:    #9B7AB8;   /* leaf band */
+  --red:       #B14A3A;
+}
+
+/* ---- Base typography -------------------------------------- */
+
+html, body, [class*="css"] {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  font-feature-settings: "ss01", "cv11";
+}
+
+code, pre, .stCode, kbd {
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  font-size: 13px;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+h1 { font-weight: 700; }
+h2 { font-weight: 600; }
+h3 { font-weight: 600; color: var(--green); }
+
+/* ---- App container ---------------------------------------- */
+
+.stApp {
+  background: var(--bg);
+}
+
+.main .block-container {
+  padding-top: 2.5rem;
+  padding-bottom: 6rem;
+  max-width: 1100px;
+}
+
+/* ---- Sidebar --------------------------------------------- */
+
+[data-testid="stSidebar"] {
+  background: var(--bg-soft);
+  border-right: 1px solid var(--rule);
+}
+
+[data-testid="stSidebar"] .stMarkdown h2 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 1.5rem;
+}
+
+[data-testid="stSidebarNav"] {
+  padding-top: 0.5rem;
+}
+
+[data-testid="stSidebarNav"] a {
+  font-weight: 500;
+  font-size: 0.93rem;
+  border-radius: 6px;
+}
+
+[data-testid="stSidebarNav"] a:hover {
+  background: rgba(45, 74, 43, 0.06);
+}
+
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+  background: var(--green);
+  color: white;
+}
+
+/* ---- Buttons --------------------------------------------- */
+
+.stButton > button {
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  background: var(--bg-card);
+  color: var(--ink);
+  font-weight: 500;
+  padding: 0.5rem 1.1rem;
+  transition: all 0.15s ease;
+}
+
+.stButton > button:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.stButton > button[kind="primary"] {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+.stButton > button[kind="primary"]:hover {
+  background: #1E3520;
+  border-color: #1E3520;
+  color: white;
+}
+
+/* ---- Download buttons inherit button styling --------------- */
+
+.stDownloadButton > button {
+  border-radius: 6px;
+  border: 1px solid var(--green);
+  background: var(--bg-card);
+  color: var(--green);
+  font-weight: 500;
+}
+
+.stDownloadButton > button:hover {
+  background: var(--green);
+  color: white;
+}
+
+/* ---- Form inputs ----------------------------------------- */
+
+.stTextInput input, .stNumberInput input, .stTextArea textarea, .stSelectbox > div > div {
+  border-radius: 6px;
+  border-color: var(--rule);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(45, 74, 43, 0.12);
+}
+
+/* ---- Tabs ------------------------------------------------ */
+
+.stTabs [data-baseweb="tab-list"] {
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+}
+
+.stTabs [data-baseweb="tab"] {
+  padding: 0.6rem 1.1rem;
+  background: transparent;
+  border-radius: 0;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border-bottom: 2px solid transparent;
+}
+
+.stTabs [aria-selected="true"] {
+  color: var(--green) !important;
+  border-bottom-color: var(--green) !important;
+  background: transparent !important;
+}
+
+/* ---- Metrics --------------------------------------------- */
+
+[data-testid="stMetricLabel"] {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+[data-testid="stMetricValue"] {
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--green);
+}
+
+/* ---- Code blocks ----------------------------------------- */
+
+.stCodeBlock, pre {
+  background: #F7F2E6 !important;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+/* ---- Alerts / info boxes --------------------------------- */
+
+.stAlert {
+  border-radius: 6px;
+  border-left-width: 3px;
+}
+
+div[data-baseweb="notification"] {
+  border-radius: 6px;
+}
+
+/* ---- DataFrames ------------------------------------------ */
+
+.stDataFrame {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* ---- Custom utility classes ------------------------------ */
+
+.section-rule {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 2rem 0 1.5rem 0;
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--green-2);
+  margin-bottom: 0.5rem;
+}
+
+.lead {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.pill.done   { background: #E8F2DC; border-color: var(--green-3); color: var(--green); }
+.pill.todo   { background: #F2ECE0; border-color: var(--rule);   color: var(--ink-soft); }
+.pill.warn   { background: #FBEFD5; border-color: var(--amber-3); color: #8B6418; }
+.pill.error  { background: #F7E0DA; border-color: var(--red);    color: var(--red); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.card h4 {
+  margin: 0 0 0.4rem 0;
+  font-weight: 600;
+}
+
+.muted { color: var(--ink-soft); }
+
+.kbd {
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+
+/* ---- Hide default Streamlit chrome ----------------------- */
+
+#MainMenu, footer, header [data-testid="stHeader"] {
+  visibility: hidden;
+  height: 0;
+}
