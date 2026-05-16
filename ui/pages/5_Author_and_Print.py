@@ -142,6 +142,7 @@ def _run_with_log(gen, busy_message: str,
     progress_widget = st.empty()
     with st.spinner(busy_message):
         rc = None
+        
         t0 = time.time()
         for stream, line in gen:
             if stream == "exit":
@@ -255,11 +256,13 @@ with tab_narr:
             unsafe_allow_html=True,
         )
         for _, row in df.iterrows():
+            label_raw = row.get("label", "")
+            label = str(label_raw) if pd.notna(label_raw) else ""
             st.markdown(
                 f'<div class="card">'
                 f'<h4 style="margin:0 0 0.4rem 0">Cluster '
                 f'{int(row["cluster"])} '
-                f'<span class="pill todo">{row.get("label", "")}</span>'
+                f'<span class="pill todo">{label}</span>'
                 f'</h4>'
                 f'<div class="muted" style="font-size:0.78rem;'
                 f'margin-bottom:0.6rem">n={int(row["size"])} · '

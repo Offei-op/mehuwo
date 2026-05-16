@@ -134,7 +134,11 @@ for _, row in summary.iterrows():
         "broad-gap": "error",
     }.get(row["label"], "todo")
 
-    weak = row.get("weakest_skills", "")
+    # `weakest_skills` may be missing (NaN) for the `all-mastered` cluster
+    # and pandas returns float NaN, not empty string. Coerce explicitly.
+    weak_raw = row.get("weakest_skills", "")
+    weak = str(weak_raw).strip() if pd.notna(weak_raw) else ""
+
     st.markdown(
         f'<div class="card">'
         f'<div style="display:flex;align-items:baseline;'
@@ -145,7 +149,7 @@ for _, row in summary.iterrows():
         f'<div class="muted" style="font-size:0.88rem">'
         f'<b>{int(row["size"])}</b> students · '
         f'mean mastery <b>{row["mean_mastery"]:.2f}</b>'
-        f'{("· weakest in " + weak) if weak else ""}'
+        f'{(" · weakest in " + weak) if weak else ""}'
         f'</div></div>',
         unsafe_allow_html=True,
     )
@@ -244,17 +248,26 @@ if w.cluster_paths_xlsx and Path(w.cluster_paths_xlsx).exists():
             st.markdown(f"**Cluster {int(c)} path**")
             steps = []
             for _, row in group.iterrows():
-                band = row.get("band") or row.get("type") or ""
+                # NaN-safe reads (pandas hands back float NaN for missing cells)
+                band_raw = row.get("band") if pd.notna(row.get("band")) \
+                           else row.get("type")
+                band = str(band_raw).strip() if pd.notna(band_raw) else ""
+                skill_raw = row.get("skill", "")
+                skill = str(skill_raw) if pd.notna(skill_raw) else ""
+                step_raw = row.get("step", 0)
+                step_n = int(step_raw) if pd.notna(step_raw) else 0
+
                 band_pill = {
                     "foundation": '<span class="pill warn">foundation</span>',
                     "middle":     '<span class="pill warn">middle</span>',
                     "leaf":       '<span class="pill">leaf</span>',
-                }.get(band, f'<span class="pill">{band}</span>')
+                }.get(band, f'<span class="pill">{band}</span>' if band
+                                else '<span class="pill"></span>')
                 steps.append(
                     f"<div style='margin:0.25rem 0;font-size:0.92rem'>"
-                    f"<b>{int(row.get('step', 0))}.</b> "
+                    f"<b>{step_n}.</b> "
                     f"<span style='font-family:JetBrains Mono;"
-                    f"font-size:0.88rem'>{row.get('skill', '')}</span> "
+                    f"font-size:0.88rem'>{skill}</span> "
                     f"{band_pill}</div>"
                 )
             st.markdown("\n".join(steps), unsafe_allow_html=True)
