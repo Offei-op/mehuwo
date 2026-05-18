@@ -2,7 +2,6 @@
 ollama
 fastapi
 uvicorn[standard]
-streamlit
 sqlalchemy
 pydantic
 python-multipart
@@ -13,6 +12,7 @@ reportlab
 opencv-contrib-python
 pillow
 numpy
+pypdfium2
 
 # cnn fallback
 torch
@@ -27,8 +27,9 @@ pandas
 sympy
 jsonschema
 
-# pdf + sheet generation
-reportlab
+# ui & plots
+streamlit
+matplotlib
 
 # dev
 pytest
@@ -39,7 +40,6 @@ ipython
 jupyter
 
 # optional / nice-to-have
-matplotlib
 seaborn
 tqdm
 httpx
