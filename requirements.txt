@@ -1,45 +1,32 @@
-# core
-ollama
-fastapi
-uvicorn[standard]
-sqlalchemy
-pydantic
-python-multipart
-python-dotenv
-reportlab
+# Slimmed dependency set for the Hugging Face Spaces deployment.
+# The Space does NOT need:
+#   - ollama (no daemon on the free tier)
+#   - fastapi / uvicorn / sqlalchemy / python-multipart / python-dotenv
+#     (no API or DB)
+#   - torch / torchvision (CNN tick classifier; we use the heuristic)
+#   - sympy (only used by the agent-side arithmetic verifier)
+#   - dev tools (pytest, ruff, black, ipython, jupyter)
+#   - optional charting (seaborn) or http (httpx, tqdm)
 
-# recognition
+# UI + charts
+streamlit
+matplotlib
+
+# Recognition pipeline (live demo on Page 3)
 opencv-contrib-python
 pillow
 numpy
 pypdfium2
 
-# cnn fallback
-torch
-torchvision
-
-# analytics
+# Data, scoring, clustering (for rendering bundled artefacts and
+# re-running scoring/clustering on synthetic or uploaded data)
+pandas
+openpyxl
 scipy
 scikit-learn
-pandas
 
-# agent / math
-sympy
+# PDF generation (quiz, roster sheet, cluster + remediation reports)
+reportlab
+
+# Bank validation
 jsonschema
-
-# ui & plots
-streamlit
-matplotlib
-
-# dev
-pytest
-pytest-cov
-ruff
-black
-ipython
-jupyter
-
-# optional / nice-to-have
-seaborn
-tqdm
-httpx

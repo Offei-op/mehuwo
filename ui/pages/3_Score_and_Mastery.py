@@ -1,11 +1,11 @@
 """Page 3 — Score & Mastery.
 
-Honest about the missing OCR step: provides three ways to get a
-results.xlsx:
-  1. Upload a real one (produced manually or by an external OCR step)
+Three ways to get a results.xlsx into the workspace:
+  1. Upload one prepared elsewhere
   2. Generate synthetic results from the bank for demo / testing
-  3. (Placeholder) — upload scanned roster sheet. This will be enabled
-     once the recognition pipeline lands.
+  3. Run the recognition pipeline on scanned roster sheets — ArUco
+     rectification + tick classification produces a real results.xlsx
+     from photos/PDFs of the printed sheet
 
 Then runs the scoring layer to produce mastery.xlsx.
 """
@@ -23,7 +23,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from lib.state import init_state, require_ws, save_ws, header
-from lib.runners import run_scoring
+from lib.runners import run_scoring, run_recognition
 from lib.viz import per_student_mean_hist, mastery_distribution
 from lib.demo import generate_synthetic_results
 
@@ -38,10 +38,10 @@ header(
     "Score & Mastery",
     eyebrow="step 3 of 5",
     description=(
-        "Turn per-item correctness into per-skill mastery. Currently you "
-        "must supply the results file manually (or generate synthetic "
-        "results for testing) — the OCR step that reads filled-in roster "
-        "sheets is on the roadmap but not yet built."
+        "Turn per-item correctness into per-skill mastery. Three ways to "
+        "produce the per-item correctness file: upload one, generate "
+        "synthetic results for testing, or run the recognition pipeline "
+        "on scanned roster sheets."
     ),
 )
 
@@ -158,19 +158,173 @@ with tab_synthetic:
         st.rerun()
 
 with tab_ocr:
-    st.markdown(
-        '<div class="card"><h4>Not yet available</h4>'
-        '<div class="muted" style="font-size:0.88rem">Uploading a phone '
-        "photo of a filled-in roster sheet and getting per-item "
-        "correctness back is the next thing on the roadmap. The roster "
-        "sheets <em>already</em> carry ArUco fiducials and the "
-        "cells.json file already records every tick-cell position, so "
-        "the OCR step has everything it needs — the rectification, "
-        "tick-classification, and writeback code just hasn't been built "
-        "yet. For now, use one of the other tabs."
-        "</div></div>",
-        unsafe_allow_html=True,
-    )
+    if not w.roster_cells or not Path(w.roster_cells).exists():
+        st.markdown(
+            '<div class="card"><h4>Need a roster sheet first</h4>'
+            '<div class="muted" style="font-size:0.88rem">'
+            "The recognition pipeline reads the per-cell coordinates and "
+            "the deterministic <span class='kbd'>quiz_id</span> out of "
+            "<span class='kbd'>roster_cells.json</span>. Generate the "
+            "roster on the <strong>Materials</strong> page first."
+            "</div></div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        cells_meta = json.loads(Path(w.roster_cells).read_text())
+        quiz_id_expected = cells_meta["quiz_id"]
+        n_pages = cells_meta["n_pages"]
+        n_items = cells_meta["num_items"]
+        n_students_meta = cells_meta["n_students"]
+
+        st.markdown(
+            f'<p class="lead">Upload your scanned roster sheets — phone '
+            f"photos, scanner PDFs, or image files. The pipeline detects "
+            f"the ArUco fiducials on each page, rectifies the perspective "
+            f"to the cell coordinates in "
+            f"<span class='kbd'>roster_cells.json</span>, and classifies "
+            f"every tick cell. <strong>Expected:</strong> "
+            f"{n_pages} page{'s' if n_pages != 1 else ''} "
+            f"covering {n_students_meta} students &times; {n_items} items, "
+            f"quiz id <span class='kbd'>{quiz_id_expected}</span>."
+            f"</p>",
+            unsafe_allow_html=True,
+        )
+
+        uploads = st.file_uploader(
+            "Scanned roster sheets (PDF, PNG, JPG, TIF, BMP)",
+            type=["pdf", "png", "jpg", "jpeg", "tif", "tiff", "bmp"],
+            accept_multiple_files=True,
+            label_visibility="collapsed",
+        )
+
+        col_a, col_b = st.columns([1, 2])
+        with col_a:
+            use_demo = st.button(
+                "Or: try the workspace's own roster",
+                use_container_width=True,
+                disabled=not (w.roster_pdf and Path(w.roster_pdf).exists()),
+                help="Run recognition on this workspace's printed roster "
+                     "PDF (blank — no ticks). Useful as a sanity check "
+                     "when you don't have a scanned sheet at hand.",
+            )
+        with col_b:
+            run_uploads = (
+                st.button(
+                    f"Recognise {len(uploads)} uploaded "
+                    f"file{'s' if len(uploads) != 1 else ''}",
+                    type="primary", use_container_width=True,
+                )
+                if uploads else False
+            )
+            if not uploads:
+                st.caption("Upload one or more scans, or use the demo "
+                           "button to recognise the bundled blank roster.")
+
+        with st.expander("Advanced settings", expanded=False):
+            cc1, cc2 = st.columns(2)
+            with cc1:
+                fill_threshold = st.slider(
+                    "Fill threshold", 0.02, 0.40, 0.08, 0.01,
+                    help="Dark-pixel fraction (after Otsu binarisation of "
+                         "the cell's central region) above which the cell "
+                         "is classified as ticked. Lower = more sensitive. "
+                         "Tune on your scanner + ink combination.",
+                )
+            with cc2:
+                margin_frac = st.slider(
+                    "Cell-margin shrink", 0.0, 0.40, 0.20, 0.05,
+                    help="Fraction of each cell trimmed off every side "
+                         "before classifying — kills grid-line and "
+                         "name-text bleed from the surrounding row.",
+                )
+
+        # Decide whether and on what to run
+        scans_to_process = None
+        if use_demo:
+            scans_to_process = [Path(w.roster_pdf)]
+        elif run_uploads and uploads:
+            scans_dir = w.root / "scans"
+            scans_dir.mkdir(parents=True, exist_ok=True)
+            scans_to_process = []
+            for up in uploads:
+                dest = scans_dir / up.name
+                dest.write_bytes(up.getvalue())
+                scans_to_process.append(dest)
+
+        if scans_to_process:
+            results_path = w.root / "results.xlsx"
+            debug_dir = w.root / "recognition_debug"
+
+            log_area = st.empty()
+            status_area = st.empty()
+            lines: list[str] = []
+            rc = None
+
+            status_area.info(
+                f"Running recognition on {len(scans_to_process)} "
+                f"file{'s' if len(scans_to_process) != 1 else ''}…"
+            )
+
+            for stream, line in run_recognition(
+                cells=Path(w.roster_cells),
+                scans=scans_to_process,
+                output=results_path,
+                debug_dir=debug_dir,
+                fill_threshold=float(fill_threshold),
+                margin_frac=float(margin_frac),
+                expect_quiz_id=quiz_id_expected,
+            ):
+                if stream == "exit":
+                    rc = int(line)
+                    break
+                lines.append(line)
+                log_area.code("\n".join(lines[-25:]), language="text")
+
+            if rc == 0 and results_path.exists():
+                w.results_xlsx = results_path
+                save_ws()
+                df = pd.read_excel(results_path)
+                n_scored = int(df["scored"].sum())
+                n_ticks = int(df.filter(like="item_").sum().sum())
+                status_area.success(
+                    f"Recognition complete — {n_scored}/{len(df)} students "
+                    f"scored, {n_ticks} tick(s) detected."
+                )
+
+                # Surface the debug overlay images so the judge can SEE
+                # the rectified page with cell rectangles drawn on it
+                # (green where ticks were detected, red where blank).
+                debug_pngs = sorted(debug_dir.glob("*.png")) \
+                    if debug_dir.exists() else []
+                if debug_pngs:
+                    with st.expander(
+                        f"Debug overlays — rectified pages with cell "
+                        f"classifications ({len(debug_pngs)} page"
+                        f"{'s' if len(debug_pngs) != 1 else ''})",
+                        expanded=False,
+                    ):
+                        st.caption(
+                            "Green rectangles = cells classified as "
+                            "ticked. Red = blank. These are the "
+                            "rectified, mm-pixel-aligned images the "
+                            "classifier actually saw."
+                        )
+                        for png in debug_pngs:
+                            st.image(str(png), caption=png.name,
+                                     use_container_width=True)
+
+                time.sleep(0.7)
+                st.rerun()
+            else:
+                status_area.error(
+                    f"Recognition exited with code {rc}. The most common "
+                    f"cause is a quiz_id mismatch — pages from a different "
+                    f"quiz can't be paired with this workspace's "
+                    f"roster_cells.json (the id is printed on every "
+                    f"sheet and embedded in the cells file as a "
+                    f"deliberate guardrail). See log:"
+                )
+                st.code("\n".join(lines) or "(no output)", language="text")
 
 
 # =========================================================================

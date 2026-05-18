@@ -4,10 +4,15 @@ Two jobs:
   1. Workspace lifecycle: create new, load existing, or open the demo.
   2. Show pipeline progress for the active workspace so the teacher
      knows what's done and what to do next.
+
+When running on Hugging Face Spaces (detected via the SPACE_ID env var),
+the home auto-loads a fully populated workspace and surfaces a banner
+explaining which features are available without a local Ollama daemon.
 """
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.state import (
     init_state, ws, header, STEPS, step_status,
     create_workspace, load_workspace, list_workspaces, make_demo_workspace,
-    BUNDLED,
+    BUNDLED, REPO_ROOT,
 )
 from lib.runners import ollama_reachable
 
@@ -32,6 +37,98 @@ st.set_page_config(
 )
 
 init_state()
+
+
+# --- Live-demo bootstrap (Hugging Face Spaces) ---------------------------
+# When the app is running on Spaces, drop a first-time visitor straight
+# into a fully populated workspace so they see real outputs immediately,
+# and surface a banner explaining that LLM-driven buttons are disabled
+# (no Ollama daemon on the free tier). The whole block is a no-op when
+# SPACE_ID is not set, so local development is unaffected.
+
+IS_SPACE = bool(os.environ.get("SPACE_ID"))
+
+
+def _build_jhs2a_from_disk(root):
+    """Construct a Workspace from the jhs2a directory by scanning for
+    files with known conventional names. We bypass workspace.json
+    because the bundled manifest may carry absolute paths from the
+    machine where the run was originally produced (e.g. Windows paths
+    like C:\\Users\\...), which on a Linux Space resolve to nothing.
+
+    Returns the constructed Workspace, or None if the directory is
+    missing or empty."""
+    from datetime import datetime
+    from lib.state import Workspace
+
+    if not root.exists():
+        return None
+
+    # filename in jhs2a/ -> Workspace attribute it should populate
+    files_by_attr = {
+        "topic_spec":                       root / "topic_spec.json",
+        "bank":                             root / "bank.json",
+        "quiz_pdf":                         root / "quiz.pdf",
+        "quiz_key_pdf":                     root / "quiz_key.pdf",
+        "roster_pdf":                       root / "roster.pdf",
+        "roster_cells":                     root / "roster_cells.json",
+        "results_xlsx":                     root / "results.xlsx",
+        "mastery_xlsx":                     root / "mastery.xlsx",
+        "mastery_clustered_xlsx":           root / "mastery_clustered.xlsx",
+        "cluster_summary_xlsx":             root / "cluster_summary.xlsx",
+        "cluster_paths_xlsx":               root / "cluster_paths.xlsx",
+        "cluster_summary_narratives_xlsx":  root / "cluster_summary_with_narratives.xlsx",
+        "remediation_pack_json":            root / "remediation_pack.json",
+        "cluster_report_pdf":               root / "cluster_report.pdf",
+        "remediation_pack_pdf":             root / "remediation_pack.pdf",
+    }
+    kwargs = {attr: p for attr, p in files_by_attr.items() if p.exists()}
+    if not kwargs:
+        return None
+
+    w = Workspace(
+        name="Demo: JHS 2A fractions diagnostic",
+        root=root,
+        created_at=datetime.now().isoformat(timespec="seconds"),
+        **kwargs,
+    )
+    st.session_state["workspace"] = w
+    return w
+
+
+if IS_SPACE and ws() is None:
+    # Prefer the bundled jhs2a run — it has every downstream artefact
+    # already produced (clusters, narratives, remediation pack, PDFs)
+    # so judges see end-to-end outputs without first having to generate
+    # synthetic results.
+    try:
+        built = _build_jhs2a_from_disk(REPO_ROOT / "data" / "runs" / "jhs2a")
+        if built is None:
+            make_demo_workspace()
+    except Exception:
+        # Fall through to the normal workspace-picker UI if neither
+        # auto-load path succeeded — the missing-files caption on the
+        # demo card will tell the visitor what's wrong.
+        pass
+
+if IS_SPACE:
+    st.markdown(
+        '<div style="background:#FFF6E0;border:1px solid #E8C56B;'
+        'border-radius:6px;padding:0.85rem 1.1rem;margin-bottom:1.1rem;'
+        'font-size:0.88rem;color:#5C4A0B;line-height:1.55">'
+        '<strong style="color:#3A2E00">Live demo mode.</strong> '
+        'This is a public hosted instance — the Ollama daemon is not '
+        'available here, so buttons that call Gemma 4 (item-bank '
+        'generation, cluster narratives, remediation content) are '
+        'disabled. Click through the pre-loaded workspace to see real '
+        'outputs from the full offline pipeline, or try the recognition '
+        'pipeline live on <strong>Page 3 &rarr; From roster scan</strong> '
+        'by uploading the bundled <span class="kbd">roster_test.pdf</span>. '
+        'The complete pipeline runs locally with a local Ollama daemon &mdash; '
+        'see the project repository.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # --- Sidebar --------------------------------------------------------------
