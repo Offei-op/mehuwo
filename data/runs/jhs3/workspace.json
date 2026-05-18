@@ -1,0 +1,21 @@
+{
+  "name": "jhs3",
+  "root": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3",
+  "created_at": "2026-05-16T13:13:50",
+  "topic_spec": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\topic_spec.json",
+  "bank": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\bank.json",
+  "quiz_pdf": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\quiz.pdf",
+  "quiz_key_pdf": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\quiz_key.pdf",
+  "roster_pdf": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\roster.pdf",
+  "roster_cells": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\roster_cells.json",
+  "results_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\results.xlsx",
+  "mastery_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\mastery.xlsx",
+  "mastery_clustered_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\mastery_clustered.xlsx",
+  "cluster_summary_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\cluster_summary.xlsx",
+  "cluster_paths_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\cluster_paths.xlsx",
+  "cluster_summary_narratives_xlsx": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\cluster_summary_with_narratives.xlsx",
+  "remediation_pack_json": "C:\\Users\\Papa Offei\\Documents\\Machine Learning\\mehuwo\\data\\runs\\jhs3\\remediation_pack.json",
+  "cluster_report_pdf": null,
+  "remediation_pack_pdf": null,
+  "validation_report": null
+}

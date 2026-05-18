@@ -124,6 +124,36 @@ def run_make_quiz_pdf(
     yield from stream_command(cmd)
 
 
+def run_recognition(
+    cells: Path, scans: list[Path], output: Path,
+    *,
+    debug_dir: Path | None = None,
+    fill_threshold: float | None = None,
+    margin_frac: float | None = None,
+    px_per_mm: float | None = None,
+    pdf_scale: float | None = None,
+    expect_quiz_id: str | None = None,
+) -> Iterator[tuple[str, str]]:
+    """recognition/recognition_pipeline.py — turn scanned roster sheets into
+    results.xlsx. `scans` is one or more image/PDF paths; the pipeline self-
+    sorts pages by ArUco fiducial IDs so order doesn't matter. Pass the
+    workspace's quiz_id via `expect_quiz_id` to guard against running this
+    against the wrong cells.json (the deterministic id printed on every page
+    is the metadata-misuse fence)."""
+    cmd = _py(REPO_ROOT / "recognition" / "recognition_pipeline.py") + [
+        "--cells", str(cells),
+        "--scans", *[str(s) for s in scans],
+        "--output", str(output),
+    ]
+    if debug_dir:                  cmd += ["--debug-dir", str(debug_dir)]
+    if fill_threshold is not None: cmd += ["--fill-threshold", str(fill_threshold)]
+    if margin_frac is not None:    cmd += ["--margin-frac", str(margin_frac)]
+    if px_per_mm is not None:      cmd += ["--px-per-mm", str(px_per_mm)]
+    if pdf_scale is not None:      cmd += ["--pdf-scale", str(pdf_scale)]
+    if expect_quiz_id:             cmd += ["--expect-quiz-id", expect_quiz_id]
+    yield from stream_command(cmd)
+
+
 def run_scoring(
     results: Path, bank: Path, output: Path,
     *, audit: Path | None = None,

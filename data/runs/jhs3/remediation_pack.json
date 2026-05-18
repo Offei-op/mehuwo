@@ -1,0 +1,1013 @@
+{
+  "subject": "Fractions",
+  "bank_quiz_context": "Ghanaian upper primary (B.S. 4-6), generated against a 10-node skill graph.",
+  "clusters": {
+    "0": {
+      "label": "broad-gap",
+      "n_students": 13,
+      "mean_mastery": 0.3307692307692308,
+      "path": [
+        {
+          "step": 1,
+          "skill": "Multiplication",
+          "depth": 0,
+          "band": "foundation",
+          "centroid_mastery": 0.4615384615384616,
+          "content": {
+            "skill": "Fractions Multiplication",
+            "explanation": "Good morning, class! Today we are going to learn how to multiply fractions. This might look tricky, but don't worry. It's actually quite easy once you know the trick. \n\nRemember that a fraction is just a part of a whole. When we multiply fractions, we just need to multiply the top numbers (the numerators) together, and then multiply the bottom numbers (the denominators) together. It’s a simple rule: \n\n(Top times Top) over (Bottom times Bottom). \n\nThink of it like this: if Kofi has 1/2 of a mango and Ama has 1/3 of the same mango, and they want to find out what fraction of the whole mango they used together, we multiply 1/2 times 1/3. We multiply the tops: 1 times 1 equals 1. We multiply the bottoms: 2 times 3 equals 6. So, 1/2 times 1/3 equals 1/6. \n\nWe must always keep the answer as a fraction unless the question tells us otherwise!",
+            "worked_example": {
+              "problem": "Find the product of 2/3 and 4/5.",
+              "solution_steps": [
+                "Multiply the numerators (top numbers): 2 times 4 equals 8.",
+                "Multiply the denominators (bottom numbers): 3 times 5 equals 15.",
+                "Place the results over each other. So, 2/3 times 4/5 equals 8/15."
+              ],
+              "final_answer": "8/15"
+            },
+            "practice_items": [
+              {
+                "stem": "What is 3/4 times 2/5?",
+                "options": {
+                  "A": "6/20",
+                  "B": "5/9",
+                  "C": "6/10",
+                  "D": "3/20"
+                },
+                "correct_option": "A",
+                "hint": "Remember to multiply straight across: top times top, and bottom times bottom."
+              },
+              {
+                "stem": "Kwame used 1/2 of a packet of kelewele. If the packet contained 3/4 of a whole, what fraction did Kwame use? Calculate 1/2 times 3/4.",
+                "options": {
+                  "A": "3/8",
+                  "B": "1/8",
+                  "C": "3/2",
+                  "D": "6/20"
+                },
+                "correct_option": "A",
+                "hint": "Multiply the numerators (1 times 3) and the denominators (2 times 4)."
+              },
+              {
+                "stem": "If Esi needs 2/3 cup of flour for jollof rice and uses 3/5 of that amount, what fraction of a cup of flour did she use?",
+                "options": {
+                  "A": "6/15",
+                  "B": "6/8",
+                  "C": "2/15",
+                  "D": "3/15"
+                },
+                "correct_option": "A",
+                "hint": "Top times top (2 times 3). Bottom times bottom (3 times 5)."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying only the numerators (or only the denominators).",
+                "description": "A student might only multiply the top numbers (e.g., 2 times 4 = 8) and forget to multiply the bottoms (3 times 5 = 15), giving an incorrect answer like 8/3 or 8/5. The student must multiply both tops AND both bottoms.",
+                "correction": "The rule is always (Top times Top) over (Bottom times Bottom). Always multiply both parts!"
+              },
+              {
+                "name": "Adding the fractions instead of multiplying.",
+                "description": "Since students are struggling with the concept, they might confuse multiplication with addition, trying to add fractions or adding the numerators and denominators together. For example, thinking 2/3 times 4/5 means (2+4)/(3+5) = 6/8.",
+                "correction": "Remember, multiplication means multiplying! We do not add anything. We multiply 2 times 4, and 3 times 5."
+              }
+            ]
+          }
+        },
+        {
+          "step": 2,
+          "skill": "Division",
+          "depth": 0,
+          "band": "foundation",
+          "centroid_mastery": 0.3461538461538461,
+          "content": {
+            "skill": "Fractions Division",
+            "explanation": "My dear students, remember what a fraction is! A fraction shows a part of a whole. When we divide fractions, we are essentially asking: 'How many groups of the second fraction can we fit into the first fraction?'\n\nTo divide fractions, there is a simple trick: **Keep, Change, Flip** (or KCF).\n\n1. **KEEP** the first fraction exactly as it is.\n2. **CHANGE** the division sign (÷) to a multiplication sign (×).\n3. **FLIP** the second fraction (this is called finding the reciprocal, meaning you switch the numerator and the denominator).\n\nExample: 3/4 divided by 2/3 is the same as 3/4 × 3/2.",
+            "worked_example": {
+              "problem": "Akua has 2/3 of a tray of mangoes. She wants to package these mangoes into small boxes, and each box holds 1/6 of a tray of mangoes. How many boxes can Akua fill?",
+              "solution_steps": [
+                "We need to calculate: 2/3 divided by 1/6.",
+                "Step 1: KEEP the first fraction (2/3).",
+                "Step 2: CHANGE ÷ to ×. So we have 2/3 × ...",
+                "Step 3: FLIP the second fraction (1/6 becomes 6/1).",
+                "Calculation: 2/3 × 6/1",
+                "Multiply the numerators: 2 × 6 = 12.",
+                "Multiply the denominators: 3 × 1 = 3.",
+                "Result: 12/3",
+                "Simplify: 12/3 = 4. Akua can fill 4 boxes."
+              ],
+              "final_answer": "4"
+            },
+            "practice_items": [
+              {
+                "stem": "Kofi has 3/5 of a basket of plantain. He wants to share this equally among 3 friends. Each friend gets 1/5 of the total basket. How many shares does Kofi have?",
+                "options": {
+                  "A": "3/25",
+                  "B": "3/5 × 1/5",
+                  "C": "3/5 ÷ 1/5",
+                  "D": "15/25"
+                },
+                "correct_option": "C",
+                "hint": "Remember to use the Keep, Change, Flip rule. 3/5 ÷ 1/5 = 3/5 × 5/1 = 3."
+              },
+              {
+                "stem": "Ama used 4/9 cup of jollof rice for a pot. If she wants to divide this amount into servings, and each serving needs 2/3 cup, how many servings will she get?",
+                "options": {
+                  "A": "8/27",
+                  "B": "4/9 ÷ 2/3",
+                  "C": "4/9 × 2/3",
+                  "D": "6/27"
+                },
+                "correct_option": "B",
+                "hint": "This is a division problem. Keep the first fraction, change ÷ to ×, and flip the second fraction."
+              },
+              {
+                "stem": "Kwame bought 5/6 bag of kelewele. He wants to divide this amount into smaller portions, and each portion is 1/12 of a bag. How many portions can he get?",
+                "options": {
+                  "A": "5/6 × 12/1",
+                  "B": "5/6 + 1/12",
+                  "C": "5/6 ÷ 1/12",
+                  "D": "60/72"
+                },
+                "correct_option": "C",
+                "hint": "When dividing, always remember to multiply the first fraction by the reciprocal (the flipped version) of the second fraction."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying instead of Dividing",
+                "description": "Students often confuse division with multiplication and simply multiply the numerators and denominators (e.g., doing 2/3 ÷ 1/6 as 2/3 × 1/6). Remember, dividing means finding how many times the smaller amount fits into the larger amount.",
+                "correction": "To correct this, always recall the 'Keep, Change, Flip' rule. Instead of 2/3 × 1/6, you must flip the second fraction to get 2/3 × 6/1."
+              },
+              {
+                "name": "Improper Flipping (Mistaking the Reciprocal)",
+                "description": "Some students correctly use the Keep and Change steps but forget to flip the second fraction, leaving the problem as 2/3 × 1/6 instead of 2/3 × 6/1.",
+                "correction": "Always remember to 'Flip' the second fraction. If the fraction is a/b, its reciprocal is b/a. You must flip it every time!"
+              }
+            ]
+          }
+        },
+        {
+          "step": 3,
+          "skill": "Mixed_to_improper",
+          "depth": 1,
+          "band": "foundation",
+          "centroid_mastery": 0.1923076923076923,
+          "content": {
+            "skill": "Mixed_to_improper",
+            "explanation": "My dear students, remember that a fraction like 3/4 means three parts out of four total parts. Sometimes we have more than one whole, like when we eat 1 whole plantain and then another 1/2 plantain. We write this as $1 \text{ whole } 1/2$. This is called a mixed number. \n\nAn improper fraction is a fraction where the numerator (the top number) is bigger than or equal to the denominator (the bottom number). For example, 5/2 is an improper fraction. \n\nTo change a mixed number (like $1 \text{ whole } 1/2$) into an improper fraction, we use multiplication and addition. \n\nStep 1: Multiply the whole number by the denominator (the bottom number). $1 \times 2$. \n\nStep 2: Add the numerator of the fraction part to the result from Step 1. $2 + 1$.\n\nStep 3: Keep the original denominator. This result is the new numerator. \n\nSo, $1 \text{ whole } 1/2$ becomes $(1 \times 2 + 1)/2$. The answer is 3/2.",
+            "worked_example": {
+              "problem": "Kwame ate 1 whole jollof rice and 2/3 of a container of salad. Represent this amount as an improper fraction.",
+              "solution_steps": [
+                "1. Identify the whole number and the fraction: 1 whole and 2/3.",
+                "2. Multiply the whole number (1) by the denominator (3): $1 \times 3 = 3$.",
+                "3. Add the remaining numerator (2) to the result: $3 + 2 = 5$.",
+                "4. Keep the denominator (3).",
+                "Answer: 5/3"
+              ],
+              "final_answer": "5/3"
+            },
+            "practice_items": [
+              {
+                "stem": "Yaa ate 2 whole mangoes and 3/4 of a mango. What is the total amount as an improper fraction?",
+                "options": {
+                  "A": "11/4",
+                  "B": "11/2",
+                  "C": "8/4",
+                  "D": "2 3/4"
+                },
+                "correct_option": "A",
+                "hint": "Remember to multiply the whole number by the denominator first, then add the remaining top number."
+              },
+              {
+                "stem": "Esi collected 3 whole baskets of kelewele and 5/6 of a basket. What is the total amount as an improper fraction?",
+                "options": {
+                  "A": "23/6",
+                  "B": "15/6",
+                  "C": "8/6",
+                  "D": "3 5/6"
+                },
+                "correct_option": "A",
+                "hint": "Think of the total number of sixth parts. Multiply 3 by 6, then add 5."
+              },
+              {
+                "stem": "If we have 4 whole bags of rice and 1/5 of a bag, what is the total amount as an improper fraction?",
+                "options": {
+                  "A": "21/5",
+                  "B": "4/5",
+                  "C": "20/5",
+                  "D": "4 1/5"
+                },
+                "correct_option": "A",
+                "hint": "Use the pattern: (Whole number times denominator) + Numerator, all over the denominator."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Adding the Whole Number and the Numerator (Ignoring Multiplication)",
+                "description": "Mistake: Adding the whole number directly to the numerator instead of multiplying it by the denominator. (E.g., $2 + 3 = 5$ instead of $2 \times 4 + 3 = 11$).",
+                "correction": "Remember that the whole number must be multiplied by the denominator to find out how many 'pieces' (parts) are in the whole amount. (Whole number $\times$ Denominator) + Numerator."
+              },
+              {
+                "name": "Incorrect Denominator",
+                "description": "Mistake: Changing the denominator or forgetting to keep the original denominator.",
+                "correction": "The denominator tells us the size of the pieces (e.g., quarters). This size does not change, so we always keep the original denominator."
+              }
+            ]
+          }
+        },
+        {
+          "step": 4,
+          "skill": "Equivalent_fractions",
+          "depth": 1,
+          "band": "foundation",
+          "centroid_mastery": 0.4230769230769231,
+          "content": {
+            "skill": "Equivalent_fractions",
+            "explanation": "Ah, class! Today, we are learning about Equivalent Fractions. Look, when we say fractions are 'equivalent,' it means they look different, but they represent the same amount. Think of it like this: if you have one whole plantain, and I cut it into 2 equal pieces, each piece is 1/2. If I cut the same plantain into 4 equal pieces, each piece is 1/4. But if you take two of those smaller 1/4 pieces, you still have the same amount as one 1/2 piece! \n\nTo make equivalent fractions, we have to remember one rule: whatever you do to the top number (the numerator), you must also do to the bottom number (the denominator). We multiply both the top and bottom by the *same* number. This keeps the value the same, just the size of the 'slice' changes.\n\nFor example, to change 1/2, we can multiply the top and bottom by 2. So, 1/2 becomes (1 × 2) / (2 × 2) = 2/4. See? 1/2 and 2/4 are the same amount! You can check by multiplying the top and bottom by 3 too: 3/6. All these fractions represent half! You just got 3 slices out of 6 total slices. The total amount is still half.",
+            "worked_example": {
+              "problem": "Find three equivalent fractions for 2/3.",
+              "solution_steps": [
+                "We start with 2/3. To find an equivalent fraction, we multiply the top and bottom by the same number. Let's try multiplying by 2.",
+                "Numerator: 2 × 2 = 4",
+                "Denominator: 3 × 2 = 6",
+                "So, 2/3 is equivalent to 4/6.",
+                "Let's try multiplying by 10 to get another one. Remember, we keep multiplying the top and bottom by the same number.",
+                "Numerator: 2 × 10 = 20",
+                "Denominator: 3 × 10 = 30",
+                "Therefore, 2/3 is also equivalent to 20/30. These three fractions (2/3, 4/6, 20/30) all mean the same amount!",
+                "Remember, if the numbers get too big (like 20/30), it is often better to simplify them back down if possible."
+              ],
+              "final_answer": "The three equivalent fractions are 2/3, 4/6, and 20/30 (or simplest forms like 1/2, 2/4, 10/12 if asked to simplify). The key is that 2/3 = 4/6 = 20/30."
+            },
+            "practice_items": [
+              {
+                "stem": "Which fraction is equivalent to 3/5?",
+                "options": {
+                  "A": "6/10",
+                  "B": "9/15",
+                  "C": "12/20",
+                  "D": "15/20"
+                },
+                "correct_option": "B",
+                "hint": "Try multiplying both the top and the bottom of 3/5 by the same number to get the answer."
+              },
+              {
+                "stem": "Amaka ate 4/7 of the jollof rice. Which fraction is equivalent to 4/7?",
+                "options": {
+                  "A": "8/12",
+                  "B": "16/28",
+                  "C": "4/14",
+                  "D": "28/4"
+                },
+                "correct_option": "B",
+                "hint": "To go from a denominator of 7 to 28, what number did you multiply it by? Use that same number for the top number."
+              },
+              {
+                "stem": "Kwame painted 2/5 of the wall. What is an equivalent fraction for 2/5?",
+                "options": {
+                  "A": "4/10",
+                  "B": "2/15",
+                  "C": "4/5",
+                  "D": "10/25"
+                },
+                "correct_option": "A",
+                "hint": "Look at the denominators in the options. The easiest way to get a denominator of 10 from 5 is to multiply by 2. Use that same number on the top."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Dividing the Numerator and Denominator",
+                "description": "A common mistake is thinking you must divide the top and bottom numbers. Remember, to make an equivalent fraction, we must *multiply* both the numerator and the denominator by the same number. (Example: Thinking 2/3 becomes 2/6 instead of 4/6).",
+                "correction": "When making equivalent fractions, you must multiply the top and bottom by the exact same whole number. This keeps the overall value the same."
+              },
+              {
+                "name": "Multiplying Only One Part",
+                "description": "Another mistake is multiplying only the top number or only the bottom number, which changes the value of the fraction entirely. (Example: Changing 1/2 to 3/2 or 1/6).",
+                "correction": "Keep them together! Whatever multiplier you choose, it must be used for *both* the top (numerator) and the bottom (denominator)."
+              }
+            ]
+          }
+        },
+        {
+          "step": 5,
+          "skill": "Improper_to_mixed",
+          "depth": 1,
+          "band": "foundation",
+          "centroid_mastery": 0.1153846153846154,
+          "content": {
+            "skill": "Improper_to_mixed",
+            "explanation": "Good morning, class! Today, we are talking about improper fractions. Remember, a fraction is just a part of a whole. Sometimes, the top number (numerator) is bigger than the bottom number (denominator). This is an improper fraction, like 5/3. It means we have more than one whole thing—maybe enough plantain for more than one tummy!\n\nAn improper fraction is just a shortcut way of writing a mixed number. A mixed number has a whole number and a regular fraction attached, like 1 2/3. To change an improper fraction to a mixed number, we use division.\n\n*Think of it this way:* The numerator (top number) is being divided by the denominator (bottom number). \n\n*Steps:* \n1. Divide the top number by the bottom number.\n2. The whole number result is your whole number part.\n3. The remainder from the division is the new top number (numerator).\n4. The bottom number (denominator) stays the same.\n\nLet's try it together!",
+            "worked_example": {
+              "problem": "Convert 11/4 to a mixed number.",
+              "solution_steps": [
+                "Step 1: Divide the numerator (11) by the denominator (4).",
+                "11 divided by 4 is 2, with a remainder.",
+                "Step 2: Find the whole number result (the quotient).",
+                "The quotient is 2. This is our whole number part.",
+                "Step 3: Find the remainder.",
+                "4 × 2 = 8. 11 - 8 = 3. The remainder is 3.",
+                "Step 4: Keep the original denominator.",
+                "The denominator is 4.",
+                "Answer: The mixed number is 2 3/4."
+              ],
+              "final_answer": "2 3/4"
+            },
+            "practice_items": [
+              {
+                "stem": "Convert 7/2 to a mixed number.",
+                "options": {
+                  "A": "3 1/2",
+                  "B": "1 3/2",
+                  "C": "3/2",
+                  "D": "2 3/2"
+                },
+                "correct_option": "A",
+                "hint": "Remember that the whole number is the result of the division (the quotient)."
+              },
+              {
+                "stem": "How many whole portions are in 10/3?",
+                "options": {
+                  "A": "2 2/3",
+                  "B": "3 1/3",
+                  "C": "10/3",
+                  "D": "3 3/3"
+                },
+                "correct_option": "A",
+                "hint": "Use division to find the quotient and the remainder. The denominator stays the same."
+              },
+              {
+                "stem": "A market stall has 15 plantain portions. If each serving needs 5 pieces of plantain, what is the mixed number representation of the total amount (15/5)?",
+                "options": {
+                  "A": "3",
+                  "B": "1 3/5",
+                  "C": "3 0/5",
+                  "D": "1/3"
+                },
+                "correct_option": "A",
+                "hint": "Think about how many times 5 fits into 15. If the remainder is zero, it is just a whole number!"
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Mistake 1: Keeping the Remainder as the Whole Number",
+                "description": "Student thinks that if the remainder is 3 and the denominator is 4, the answer is 3 4/4. They confuse the remainder with the whole number part, or forget to keep the denominator correct.",
+                "correction": "Remember, the whole number is the *quotient* (what you get when you divide the top number by the bottom number). The remainder only becomes the top fraction. If the remainder is 0, the answer is a whole number."
+              },
+              {
+                "name": "Mistake 2: Changing the Denominator",
+                "description": "Student incorrectly changes the denominator (bottom number) or tries to simplify the fraction part immediately after finding the remainder, leading to an incorrect mixed number.",
+                "correction": "The denominator never changes when converting an improper fraction to a mixed number. It must remain the same as the original bottom number."
+              }
+            ]
+          }
+        },
+        {
+          "step": 6,
+          "skill": "Simplifying_fractions",
+          "depth": 2,
+          "band": "middle",
+          "centroid_mastery": 0.1923076923076923,
+          "content": {
+            "skill": "Simplifying_fractions",
+            "explanation": "My dear children, remember that a fraction is just a way of showing parts of a whole, like when Ama and Yaa share a platter of delicious kelewele. When we simplify a fraction, we are making it look smaller or 'simpler' while still showing the exact same amount. Think of it like sharing the kelewele evenly—we are finding the simplest way to write the share! \n\nTo simplify a fraction, we must divide both the top number (the numerator) and the bottom number (the denominator) by the same number. This shared number is called a common factor. If we can find a number that divides both the top and the bottom cleanly, we use it! This keeps the fraction's value unchanged.",
+            "worked_example": {
+              "problem": "Simplify 12/18",
+              "solution_steps": [
+                "Step 1: Find common factors for 12 and 18. We can see that both 12 and 18 can be divided by 2. So, 12 ÷ 2 = 6 and 18 ÷ 2 = 9. The fraction becomes 6/9.",
+                "Step 2: Check if 6/9 can be simplified further. Yes, both 6 and 9 can be divided by 3. So, 6 ÷ 3 = 2 and 9 ÷ 3 = 3. The fraction becomes 2/3.",
+                "Step 3: Check if 2/3 can be simplified further. No, 2 and 3 share no common factors other than 1. Therefore, 2/3 is the simplest form.",
+                "Answer: 2/3"
+              ],
+              "final_answer": "2/3"
+            },
+            "practice_items": [
+              {
+                "stem": "Simplify 10/25.",
+                "options": {
+                  "A": "2/5",
+                  "B": "5/5",
+                  "C": "10/25",
+                  "D": "1/5"
+                },
+                "correct_option": "A",
+                "hint": "Look for the largest number that divides both 10 and 25. It’s 5."
+              },
+              {
+                "stem": "Kofi bought 24 plantains and shared 18 of them. What is the simplified fraction representing the amount shared? (18/24)",
+                "options": {
+                  "A": "3/4",
+                  "B": "6/8",
+                  "C": "2/3",
+                  "D": "3/6"
+                },
+                "correct_option": "A",
+                "hint": "Start by dividing both the top and the bottom by 6."
+              },
+              {
+                "stem": "Simplify 30/42.",
+                "options": {
+                  "A": "10/14",
+                  "B": "5/7",
+                  "C": "3/2",
+                  "D": "2/3"
+                },
+                "correct_option": "B",
+                "hint": "Think about the factors of 30 and 42. What is the biggest number that divides both?"
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Mistake 1: Dividing only one number.",
+                "description": "Students sometimes divide only the numerator or only the denominator (e.g., simplifying 10/25 to 2/5 by dividing 10 by 5, but leaving 25 as 25). Remember, you must divide BOTH the top and the bottom by the same number.",
+                "correction": "Always ask: 'What number divides both the top and the bottom?'"
+              },
+              {
+                "name": "Mistake 2: Dividing by the difference instead of the common factor.",
+                "description": "Students might subtract the numbers or divide by an unrelated number. (Example: Thinking 12/18 is 12 ÷ 6 / 18, or 12-18/2). Remember, we are finding a common factor that divides BOTH numbers, not adding or subtracting.",
+                "correction": "Identify the greatest common factor (GCF) first. We divide: Top ÷ Factor / Bottom ÷ Factor."
+              }
+            ]
+          }
+        },
+        {
+          "step": 7,
+          "skill": "Multiplying_fractions",
+          "depth": 3,
+          "band": "middle",
+          "centroid_mastery": 0.3076923076923077,
+          "content": {
+            "skill": "Multiplying Fractions",
+            "explanation": "Good morning, class! Today we are going to learn how to multiply fractions. Remember, multiplying fractions is actually quite easy. You just need to multiply the top numbers (the numerators) together, and then multiply the bottom numbers (the denominators) together. \n\nWe can write it like this: (Top 1 / Bottom 1) × (Top 2 / Bottom 2) = (Top 1 × Top 2) / (Bottom 1 × Bottom 2). \n\n**Remember to simplify** your answer if possible, just like we did with basic fractions.",
+            "worked_example": {
+              "problem": "Kwame used 1/2 of a plate of jollof rice for lunch, and Ama ate 2/3 of what Kwame left. What fraction of the whole plate did Ama eat?",
+              "solution_steps": [
+                "This is a two-step problem, but we only need to focus on the multiplication: (1/2) × (2/3).",
+                "Step 1: Multiply the numerators (the tops): 1 × 2 = 2.",
+                "Step 2: Multiply the denominators (the bottoms): 2 × 3 = 6.",
+                "So, the answer is 2/6.",
+                "Step 3: Simplify the answer. Both 2 and 6 are divisible by 2. 2 ÷ 2 = 1, and 6 ÷ 2 = 3. The simplified answer is 1/3."
+              ],
+              "final_answer": "1/3"
+            },
+            "practice_items": [
+              {
+                "stem": "1. Kofi has 3/4 of a yard of plantain skin. He needs 2/5 of that length for a mat. What fraction of a yard of plantain skin did he use?",
+                "options": {
+                  "A": "6/20",
+                  "B": "3/10",
+                  "C": "6/15",
+                  "D": "1/2"
+                },
+                "correct_option": "A",
+                "hint": "Multiply the top numbers together, and multiply the bottom numbers together. Don't forget to simplify the final fraction!"
+              },
+              {
+                "stem": "2. Esi mixed 2/3 cup of kelewele mixture and needed 5/6 of that amount. How many cups of mixture did Esi use?",
+                "options": {
+                  "A": "10/18",
+                  "B": "1/2",
+                  "C": "10/6",
+                  "D": "7/9"
+                },
+                "correct_option": "A",
+                "hint": "Multiply 2/3 by 5/6. After getting the total, check if you can simplify the fraction by dividing the top and bottom by the same number."
+              },
+              {
+                "stem": "3. Akua bought 1/2 kg of yam. She used 4/5 of that yam to cook a meal. What fraction of a kilogram of yam did Akua use?",
+                "options": {
+                  "A": "4/10",
+                  "B": "2/5",
+                  "C": "4/5",
+                  "D": "1/2"
+                },
+                "correct_option": "B",
+                "hint": "Remember the rule: Multiply top by top, bottom by bottom. Then, simplify the resulting fraction."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying only the numerators (or only the denominators)",
+                "description": "Some students think they only need to multiply the tops or only the bottoms. Remember, you must multiply BOTH the tops AND the bottoms!",
+                "correction": "Always multiply Top 1 by Top 2, AND Bottom 1 by Bottom 2."
+              },
+              {
+                "name": "Adding fractions when multiplication is needed",
+                "description": "When multiplying, it is very common to accidentally add the numerators or denominators. Multiplication is NOT the same as addition!",
+                "correction": "Focus on the multiplication rule: Top × Top, Bottom × Bottom. Think of it as combining parts of a whole, not adding them up."
+              }
+            ]
+          }
+        },
+        {
+          "step": 8,
+          "skill": "Dividing_fractions",
+          "depth": 4,
+          "band": "leaf",
+          "centroid_mastery": 0.4230769230769231,
+          "content": {
+            "skill": "Dividing Fractions",
+            "explanation": "Good morning, class! Today, we are going to learn how to divide fractions. Remember, dividing by a fraction is the same as multiplying by its reciprocal (or the flip). You just need to keep, change, and flip! \n\n**The rule is:** Keep the first fraction, change the division sign (÷) to multiplication (×), and flip (or take the reciprocal of) the second fraction. \n\nIf we see (1/2) ÷ (3/4), we keep (1/2), change to ×, and flip (3/4) to (4/3). So, it becomes (1/2) × (4/3).\n\nAfter we multiply the numerators (top numbers) and the denominators (bottom numbers), always remember to simplify your answer!",
+            "worked_example": {
+              "problem": "(2/3) ÷ (4/9)",
+              "solution_steps": [
+                "Step 1: Keep the first fraction (2/3).",
+                "Step 2: Change the division sign (÷) to multiplication (×).",
+                "Step 3: Flip the second fraction (4/9) to (9/4).",
+                "Step 4: Rewrite the problem as (2/3) × (9/4).",
+                "Step 5: Multiply straight across: (2 × 9) / (3 × 4) = 18 / 12.",
+                "Step 6: Simplify the result. Both 18 and 12 are divisible by 6. (18 ÷ 6) / (12 ÷ 6) = 3 / 2.",
+                "Answer: 3/2 (or 1 1/2)."
+              ],
+              "final_answer": "3/2"
+            },
+            "practice_items": [
+              {
+                "stem": "Kwame has 3/5 of a bag of rice. If he wants to share it equally into smaller portions of 1/10 bag each, how many portions can he get?",
+                "options": {
+                  "A": "3/5 × 10",
+                  "B": "10/3 × 5",
+                  "C": "3/5 ÷ 1/10",
+                  "D": "5/3 × 10"
+                },
+                "correct_option": "C",
+                "hint": "Remember: To find out how many times a small amount fits into a larger amount, you divide. Keep, change, and flip!"
+              },
+              {
+                "stem": "Ama ate 4/5 of a large plantain. If each serving is 2/5 of the large plantain, how many servings did she eat?",
+                "options": {
+                  "A": "4/5 × 2/5",
+                  "B": "2/5 ÷ 4/5",
+                  "C": "4/5 ÷ 2/5",
+                  "D": "5/4 ÷ 5/2"
+                },
+                "correct_option": "C",
+                "hint": "Dividing by a fraction means multiplying by its reciprocal. Keep, change, and flip!"
+              },
+              {
+                "stem": "Esi needs to cut a rope that is 5/6 of a meter into pieces, each measuring 1/3 of a meter. How many pieces will she get?",
+                "options": {
+                  "A": "5/6 × 1/3",
+                  "B": "1/3 ÷ 5/6",
+                  "C": "5/6 ÷ 1/3",
+                  "D": "6/5 ÷ 3/1"
+                },
+                "correct_option": "C",
+                "hint": "Think about dividing the total length (5/6) by the piece length (1/3)."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying Straight Across (Error of Procedure)",
+                "description": "A common mistake is keeping the division sign and simply multiplying the numerators and denominators (e.g., doing 2/3 ÷ 4/9 as 2*4 / 3*9 = 8/27). Remember, you MUST keep, change, and flip!",
+                "correction": "The correct process is to keep 2/3, change to ×, and flip 4/9 to 9/4. Then multiply: 2/3 × 9/4 = 18/12 = 3/2."
+              },
+              {
+                "name": "Incorrect Reciprocal (Error of Concept)",
+                "description": "Students sometimes only flip one fraction or flip the wrong number (e.g., doing 2/3 ÷ 4/9 as 2/3 × 4/9, forgetting to flip 4/9).",
+                "correction": "You must flip the entire second fraction. The reciprocal of A/B is B/A. So, 4/9 becomes 9/4."
+              }
+            ]
+          }
+        },
+        {
+          "step": 9,
+          "skill": "PEDMAS",
+          "depth": 5,
+          "band": "leaf",
+          "centroid_mastery": 0.3076923076923077,
+          "content": {
+            "skill": "Fractions - Order of Operations (PEDMAS)",
+            "explanation": "Good morning class! Today, we are going to review how to solve tricky maths problems that involve fractions and parentheses. Remember that when you see a problem with several different operations (like multiplying, dividing, and adding), you cannot just solve them left to right. You must follow a specific order. We use an acronym called PEDMAS to help us remember this order.\n\nPEDMAS stands for:\n\n*   **P** - Parentheses (or Brackets): Solve anything inside the brackets first. This is your priority! \n*   **E** - Exponents (or Orders): (We won't worry about these with fractions, but remember they come second).\n*   **D** - Division: Next, do any division problems.\n*   **M** - Multiplication: After division, do the multiplication problems. (If you only have multiplication and division, you work from left to right).\n*   **A** - Addition: Next, do the addition problems.\n*   **S** - Subtraction: Last, do the subtraction problems. (If you only have addition and subtraction, you work from left to right).\n\nThink of it like cooking jollof rice: you can't add the rice before you mix the spices! You must follow the recipe's order.",
+            "worked_example": {
+              "problem": "Calculate: (2/3 × 6/5) + 1/2",
+              "solution_steps": [
+                "Step 1: Identify Parentheses (P). We must solve what is inside the brackets first: (2/3 × 6/5).",
+                "Step 2: Multiply the fractions: 2/3 × 6/5 = (2 × 6) / (3 × 5) = 12/15. We can simplify this to 4/5.",
+                "Step 3: The problem now looks like: 4/5 + 1/2.",
+                "Step 4: Solve the addition. To add 4/5 and 1/2, we need a common denominator, which is 10.",
+                "Step 5: 4/5 = 8/10, and 1/2 = 5/10. So, 8/10 + 5/10 = 13/10. Or, as a mixed number, 1 3/10.",
+                "final_answer_explanation_text_for_students_to_follow_along_with_me"
+              ],
+              "final_answer": "13/10 or 1 3/10 (or 1 3/10 of a whole piece of kelewele!)"
+            },
+            "practice_items": [
+              {
+                "stem": "Find the value of: (3/4 ÷ 1/2) × 2/5 + 1/10",
+                "options": {
+                  "A": "3/2",
+                  "B": "3/5",
+                  "C": "11/10",
+                  "D": "1/2"
+                },
+                "correct_option": "C",
+                "hint": "Remember to solve everything inside the parentheses (P) first. Don't forget the last addition step!"
+              },
+              {
+                "stem": "Calculate: 1/3 + (4/9 × 3/4) - 1/6",
+                "options": {
+                  "A": "1/2",
+                  "B": "5/18",
+                  "C": "1/3",
+                  "D": "1/6"
+                },
+                "correct_option": "A",
+                "hint": "First, simplify the multiplication inside the brackets. Then, work from left to right for the addition/subtraction."
+              },
+              {
+                "stem": "What is the result of: 2/5 ÷ (3/10 + 1/2) × 5?",
+                "options": {
+                  "A": "1/2",
+                  "B": "3/5",
+                  "C": "3/2",
+                  "D": "5/6"
+                },
+                "correct_option": "A",
+                "hint": "The Parentheses (P) are your friend! Solve the addition inside them first. You will get a clean number to divide by."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Ignoring Parentheses (P)",
+                "description": "Mistake: Solving the operations inside the brackets/parentheses last, or simply going left to right. Example: If the problem is (1/2 + 1/4) × 3, and a student calculates 1/2 + 1/4 × 3 (incorrectly solving 1/2 + 3/4).",
+                "correction": "Always tackle the Parentheses first! They are the most important part, like putting the spices in the pot before you add the rice."
+              },
+              {
+                "name": "Left-to-Right Confusion (M and D)",
+                "description": "Mistake: When only Multiplication (M) and Division (D) are present, students often solve M before D, or vice versa. For example, calculating 2/3 × 3/4 ÷ 1/2 by doing (2/3 × 3/4) first, and then multiplying the result by 1/2.",
+                "correction": "When you only have Multiplication and Division, you work strictly from LEFT to RIGHT. Think of it as one long chain of operations."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "1": {
+      "label": "broad-gap",
+      "n_students": 21,
+      "mean_mastery": 0.5595238095238094,
+      "path": [
+        {
+          "step": 1,
+          "skill": "Equivalent_fractions",
+          "depth": 1,
+          "band": "foundation",
+          "centroid_mastery": 0.4523809523809524,
+          "content": {
+            "skill": "Equivalent_fractions",
+            "explanation": "My dear students, remember that a fraction just tells us how many parts we have out of a total number of equal parts. When we find an equivalent fraction, it means we are changing the *look* of the fraction (like changing 2/3 to 4/6) but we are NOT changing the actual *value* it represents. \n\nThink about selling plantain at the market. If I say I sold 1/2 of a big plantain to Kwame, and later I say I sold 2/4 of the same plantain to Ama, did I sell different amounts? No! I sold the same amount. \n\nTo make fractions equivalent, we must multiply the numerator (top number) AND the denominator (bottom number) by the same non-zero number. We are essentially multiplying by 1 (like 2/2 or 3/3), which doesn't change the value!",
+            "worked_example": {
+              "problem": "Find an equivalent fraction for 3/5.",
+              "solution_steps": [
+                "We want to find a new fraction that has the same value as 3/5. Let's multiply the top and bottom by 2.",
+                "Numerator: 3 × 2 = 6",
+                "Denominator: 5 × 2 = 10",
+                "So, 3/5 is equivalent to 6/10. We multiplied by 2/2, which is 1."
+              ],
+              "final_answer": "3/5 = 6/10"
+            },
+            "practice_items": [
+              {
+                "stem": "Which fraction is equivalent to 1/3?",
+                "options": {
+                  "A": "2/5",
+                  "B": "2/6",
+                  "C": "3/9",
+                  "D": "1/6"
+                },
+                "correct_option": "B",
+                "hint": "Remember, whatever you multiply the top by, you must multiply the bottom by the same number."
+              },
+              {
+                "stem": "Find an equivalent fraction for 2/7.",
+                "options": {
+                  "A": "4/14",
+                  "B": "2/14",
+                  "C": "4/7",
+                  "D": "6/35"
+                },
+                "correct_option": "A",
+                "hint": "To get 14 on the bottom, what did you multiply 7 by? Use that same number on the top."
+              },
+              {
+                "stem": "If 5/8 represents the jollof cooked for the family, which fraction below shows the same amount?",
+                "options": {
+                  "A": "10/16",
+                  "B": "5/16",
+                  "C": "10/8",
+                  "D": "25/8"
+                },
+                "correct_option": "A",
+                "hint": "Look at the bottom number. To get 16, what did you multiply 8 by? Do the same to the top."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying Only the Numerator",
+                "description": "Student thinks they only need to multiply the top number (the parts we have) and leave the bottom number (the total parts) alone. Example: Thinking 3/5 becomes 6/5.",
+                "correction": "Remember, we must multiply *both* the top and the bottom by the same number. If you multiply the top by 2, you must multiply the bottom by 2. (6/10)."
+              },
+              {
+                "name": "Adding or Subtracting in Numerator/Denominator",
+                "description": "Student adds or subtracts numbers, confusing multiplication with addition. Example: Thinking 3/5 becomes 3+2/5.",
+                "correction": "To make fractions equivalent, we must multiply the numerator and the denominator by the exact same number. We are multiplying by 1, not adding or subtracting."
+              }
+            ]
+          }
+        },
+        {
+          "step": 2,
+          "skill": "Simplifying_fractions",
+          "depth": 2,
+          "band": "middle",
+          "centroid_mastery": 0.4523809523809524,
+          "content": {
+            "skill": "Simplifying Fractions",
+            "explanation": "Good morning, class! Today we are going to learn how to simplify fractions. What does 'simplify' mean? It means making something easier to understand or use. When we talk about fractions, simplifying means finding an equivalent fraction that uses the smallest possible whole numbers for the numerator and the denominator. \n\nThink of it like sharing a plate of kelewele. If we have 12 slices of plantain (the total, or denominator) and Kofi gets 4 slices (the part, or numerator), we write 4/12. But maybe we can describe this share using fewer numbers! We need to find a number that can divide *both* the top number (numerator) and the bottom number (denominator) without leaving any remainder. We call this number a common factor.\n\nTo simplify, we just divide the numerator and the denominator by the same common factor until we can't divide them by any whole number except 1.",
+            "worked_example": {
+              "problem": "Simplify 10/15.",
+              "solution_steps": [
+                "Step 1: Look at the numerator (10) and the denominator (15).",
+                "Step 2: What is the largest number that divides both 10 and 15? The numbers that divide 10 are 1, 2, 5, 10. The numbers that divide 15 are 1, 3, 5, 15. The biggest number they share is 5.",
+                "Step 3: Divide both the top and the bottom by this common factor (5).",
+                "10 ÷ 5 = 2 (New numerator)",
+                "15 ÷ 5 = 3 (New denominator)",
+                "Answer: 2/3. Since 2 and 3 have no common factors other than 1, 2/3 is the simplest form."
+              ],
+              "final_answer": "2/3"
+            },
+            "practice_items": [
+              {
+                "stem": "Simplify 8/16.",
+                "options": {
+                  "A": "2/4",
+                  "B": "1/2",
+                  "C": "4/8",
+                  "D": "1/4"
+                },
+                "correct_option": "B",
+                "hint": "Try dividing the top and bottom by 8 first. What is left?"
+              },
+              {
+                "stem": "If Ama ate 6 mangoes out of 18 mangoes, what fraction shows her share in its simplest form? (6/18)",
+                "options": {
+                  "A": "3/6",
+                  "B": "1/3",
+                  "C": "2/6",
+                  "D": "6/18"
+                },
+                "correct_option": "B",
+                "hint": "Find the greatest number that divides both 6 and 18. Remember, you must simplify completely!"
+              },
+              {
+                "stem": "Reduce the fraction 14/21 to its simplest form.",
+                "options": {
+                  "A": "2/3",
+                  "B": "14/21",
+                  "C": "2/7",
+                  "D": "7/3"
+                },
+                "correct_option": "A",
+                "hint": "Consider the factors of 14 and 21. What common number (other than 1) can you use?"
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Only dividing the numerator OR only dividing the denominator.",
+                "description": "The student mistakenly divides only the top number or only the bottom number by the common factor, thus changing the fraction into something incorrect. (Example: Simplifying 6/9 to 2/9 because they only divided the top by 2.)",
+                "correction": "Remember! To keep the fraction equivalent, whatever you do to the top, you MUST do to the bottom. Always divide both the numerator AND the denominator by the same number."
+              },
+              {
+                "name": "Stopping after the first obvious simplification.",
+                "description": "The student simplifies the fraction once (e.g., 8/16 becomes 4/8) but stops there, even though 4/8 can be simplified further.",
+                "correction": "Always check if the resulting numerator and denominator still share a common factor. Keep simplifying until the only common factor is 1."
+              }
+            ]
+          }
+        },
+        {
+          "step": 3,
+          "skill": "Multiplying_fractions",
+          "depth": 3,
+          "band": "middle",
+          "centroid_mastery": 0.2142857142857143,
+          "content": {
+            "skill": "Multiplying Fractions",
+            "explanation": "Ah, my dear children! Multiplying fractions is much easier than you might think. Remember what we do when we multiply whole numbers: we multiply the tops (numerators) and multiply the bottoms (denominators).\n\nWhen we multiply fractions, we do the exact same thing! We multiply the top numbers together, and we multiply the bottom numbers together. \n\nExample: 2/3 times 4/5 = (2 times 4) / (3 times 5) = 8/15. \n\n*Quick Tip*: Before you multiply, always check if you can simplify the numbers by crossing out common factors diagonally. This makes the numbers smaller and the multiplication easier! If you cannot simplify, you can still multiply straight across.",
+            "worked_example": {
+              "problem": "Akua needs 3/4 of a cup of sugar for the jollof rice, and Kofi is making 2 batches. What total amount of sugar do they need? (3/4 times 2)",
+              "solution_steps": [
+                "Step 1: Write the whole number 2 as a fraction: 2/1.",
+                "Step 2: Multiply the fractions: 3/4 times 2/1.",
+                "Step 3: Multiply the numerators: 3 times 2 = 6.",
+                "Step 4: Multiply the denominators: 4 times 1 = 4.",
+                "Step 5: The result is 6/4. This is an improper fraction.",
+                "Step 6: Simplify and convert to a mixed number: 6/4 is equal to 1 2/4, which simplifies to 1 1/2. \n\nAnswer: They need 1 1/2 cups of sugar."
+              ],
+              "final_answer": "1 1/2 cups of sugar"
+            },
+            "practice_items": [
+              {
+                "stem": "1. Ama’s mother bought 2/3 of a plantain bunch. If she wants to make 4 equal portions, what fraction of a whole bunch did she use for each portion? (2/3 times 4)",
+                "options": {
+                  "A": "8/3",
+                  "B": "6/12",
+                  "C": "2/3",
+                  "D": "4/9"
+                },
+                "correct_option": "A",
+                "hint": "Remember, when multiplying fractions, you multiply the top numbers together, and the bottom numbers together. Keep it as an improper fraction first."
+              },
+              {
+                "stem": "2. Kwame has 5/8 of a loaf of bread. If he buys 3 such loaves, what total amount of bread does he have? (5/8 times 3)",
+                "options": {
+                  "A": "15/24",
+                  "B": "15/8",
+                  "C": "8/15",
+                  "D": "3/5"
+                },
+                "correct_option": "B",
+                "hint": "Turn the whole number 3 into a fraction (3/1). Now multiply the tops and the bottoms."
+              },
+              {
+                "stem": "3. Esi painted 1/2 of the market gate. She did this to 6 identical gates. What fraction of a whole group of gates did she paint? (1/2 times 6)",
+                "options": {
+                  "A": "6/2",
+                  "B": "1/12",
+                  "C": "3",
+                  "D": "3/6"
+                },
+                "correct_option": "C",
+                "hint": "Treat 6 as 6/1. You can simplify before multiplying: 1/2 times 6/1."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying the Sums (Adding Instead of Multiplying)",
+                "description": "Students sometimes add the numerators and add the denominators instead of multiplying. They might calculate: (3 + 2) / (4 + 1) = 5/5. Remember, multiplication is *not* the same as addition. We must multiply the top numbers and multiply the bottom numbers.",
+                "correction": "If we multiply 3/4 times 2/1, we do 3 times 2 = 6 (the top), and 4 times 1 = 4 (the bottom). The answer is 6/4."
+              },
+              {
+                "name": "Improper Simplification (Cancelling Factors Only on the Top)",
+                "description": "Students might only cancel out common factors between the numerators, forgetting to do it with the denominators, or vice versa. For example, they might incorrectly simplify 2/3 times 6/5 to 2/1 times 2/5, leaving the 3 in the denominator.",
+                "correction": "Look for common factors in any pair (numerator or denominator) that can cancel out. If the 3 on the bottom and the 6 on the top are multiplied, they can both be divided by 3. So, 2/3 times 6/5 becomes 2/1 times 2/5. The final answer is 4/5."
+              }
+            ]
+          }
+        },
+        {
+          "step": 4,
+          "skill": "Dividing_fractions",
+          "depth": 4,
+          "band": "leaf",
+          "centroid_mastery": 0.119047619047619,
+          "content": {
+            "skill": "Dividing Fractions",
+            "explanation": "Good morning, class! Today, we are learning how to divide fractions. Remember, dividing by a fraction is the same as multiplying by its reciprocal (or flip). We use the rule: Keep, Change, Flip (KCF).\n\nKeep the first fraction as it is.\nChange the division sign (÷) to a multiplication sign (×).\nFlip the second fraction (find its reciprocal).\n\nExample: 2/3 divided by 4/5. We keep 2/3, change ÷ to ×, and flip 4/5 to 5/4. So, we multiply: 2/3 × 5/4.",
+            "worked_example": {
+              "problem": "Akua bought 6/7 of a plantain. She wants to divide this amount into smaller equal portions, each measuring 2/7 of a plantain. How many portions can she get?",
+              "solution_steps": [
+                "We need to calculate: 6/7 ÷ 2/7.",
+                "Step 1 (Keep): Keep the first fraction: 6/7.",
+                "Step 2 (Change): Change ÷ to ×: 6/7 × ?",
+                "Step 3 (Flip): Flip the second fraction (2/7 becomes 7/2).",
+                "Now we multiply: 6/7 × 7/2.",
+                "Step 4 (Multiply): Multiply the numerators (6 × 7) and the denominators (7 × 2).",
+                "6 × 7 = 42. 7 × 2 = 14. So, 42/14.",
+                "Step 5 (Simplify): We can simplify the fraction 42/14. Both numbers are divisible by 14. 42 divided by 14 is 3. 14 divided by 14 is 1.",
+                "The final answer is 3."
+              ],
+              "final_answer": "3 portions"
+            },
+            "practice_items": [
+              {
+                "stem": "1. Kofi has 1 1/2 cups of rice. He wants to divide this amount equally into portions that are 1/4 cup each. How many portions will he get?",
+                "options": {
+                  "A": "2",
+                  "B": "5/2",
+                  "C": "6",
+                  "D": "2 1/2"
+                },
+                "correct_option": "C",
+                "hint": "Remember to change the mixed number 1 1/2 to an improper fraction first. Then, use the Keep, Change, Flip rule."
+              },
+              {
+                "stem": "2. Ama needs to cut a piece of fabric of length 3/4 metre into smaller pieces, each measuring 3/8 metre. How many pieces can she get?",
+                "options": {
+                  "A": "3/2",
+                  "B": "9/16",
+                  "C": "2",
+                  "D": "3/8"
+                },
+                "correct_option": "C",
+                "hint": "Keep, Change, Flip! This means 3/4 × 8/3. Look for cancellation to simplify the multiplication."
+              },
+              {
+                "stem": "3. Yaa bought 5/6 of a bag of maize. She wants to share it equally among 1/3 of her cousins. How many bags (or amounts) of maize does each cousin receive?",
+                "options": {
+                  "A": "5/18",
+                  "B": "1 3/6",
+                  "C": "5/2",
+                  "D": "1 1/2"
+                },
+                "correct_option": "D",
+                "hint": "Treat '1/3 of her cousins' as the fraction 1/3. So, 5/6 ÷ 1/3. Keep, Change, Flip!"
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Multiplying the second fraction's numerator by the first fraction's numerator",
+                "description": "When dividing 2/3 ÷ 4/5, some students incorrectly multiply the second numerator (4) by the first numerator (2), giving 8, instead of performing the full multiplication step-by-step. This shows a confusion between multiplication and division structure.",
+                "correction": "Remember: We flip the second fraction (4/5 becomes 5/4). Then we multiply: 2/3 × 5/4. You only flip the denominator and numerator of the second fraction, not just the numerator."
+              },
+              {
+                "name": "Keeping the division sign and performing division after multiplication",
+                "description": "After correctly multiplying the reciprocals, some students try to divide the result by the original divisor. For example, they calculate (2/3 × 5/4) and then try to divide this answer by 4/5. This indicates a misunderstanding of the core 'Keep, Change, Flip' principle.",
+                "correction": "The rule is powerful: Keep, Change, Flip! Once you flip the second fraction and change the sign, the calculation is *only* multiplication. Do not divide the result later."
+              }
+            ]
+          }
+        },
+        {
+          "step": 5,
+          "skill": "PEDMAS",
+          "depth": 5,
+          "band": "leaf",
+          "centroid_mastery": 0.3095238095238095,
+          "content": {
+            "skill": "Order of Operations (PEDMAS)",
+            "explanation": "Good morning, class! Today, we are learning about the correct order of operations, which we call PEDMAS. Think of it like cooking jollof rice—you can't put the rice in the pot before the base spices! If we solve a problem without following the rules, we might get a different answer. Remember the letters: \n\n*   **P**arentheses: Solve anything inside the brackets first. ( ) \n*   **E**xponents: Solve any powers (like 2 times 2, or 3 squared). \n*   **D**ivision and **M**ultiplication: Work these two sides together, from left to right. Which one you see first, you solve it! \n*   **A**ddition and **S**ubtraction: Work these two sides together, from left to right. Which one you see first, you solve it! \n\nIf you have a fraction problem, always remember these rules apply!",
+            "worked_example": {
+              "problem": "Kofi calculated (1/2 + 1/4) × 3 - 5/2.",
+              "solution_steps": [
+                "Step 1 (Parentheses): First, we solve what is inside the parentheses: (1/2 + 1/4). To add them, we need a common denominator, which is 4. So, 1/2 is 2/4. \n(2/4 + 1/4) = 3/4.",
+                "Step 2 (Multiplication): Now the problem is 3/4 × 3 - 5/2. Next, we do the multiplication: 3/4 × 3. 3/4 times 3 is 3/4 times 3/1, which is 9/4.",
+                "Step 3 (Subtraction): Finally, we have 9/4 - 5/2. Again, we find a common denominator, which is 4. 5/2 is 10/4. \n9/4 - 10/4 = -1/4.",
+                "Answer: -1/4"
+              ],
+              "final_answer": "-1/4"
+            },
+            "practice_items": [
+              {
+                "stem": "Find the value of (2/3 × 6) + (1/2 ÷ 4).",
+                "options": {
+                  "A": "4 + 1/8",
+                  "B": "4 1/8",
+                  "C": "4 1/2",
+                  "D": "4 1/4"
+                },
+                "correct_option": "B",
+                "hint": "Remember to solve the parentheses first. Don't calculate 2/3 × 6, then add 1/2 ÷ 4."
+              },
+              {
+                "stem": "What is 2 1/5 × (1/2 + 1/5) - 1/2?",
+                "options": {
+                  "A": "2 1/5",
+                  "B": "3 1/5",
+                  "C": "3 1/4",
+                  "D": "2 3/5"
+                },
+                "correct_option": "B",
+                "hint": "Start with the parentheses (1/2 + 1/5). Convert 2 1/5 to an improper fraction first."
+              },
+              {
+                "stem": "Calculate: 3/5 ÷ (1/5 × 5) + 1/3.",
+                "options": {
+                  "A": "3/5 + 1/3",
+                  "B": "3/5 + 1",
+                  "C": "1 + 1/3",
+                  "D": "3/5 + 4/3"
+                },
+                "correct_option": "C",
+                "hint": "Work inside the parentheses first. Simplify the expression inside the brackets."
+              }
+            ],
+            "common_mistakes": [
+              {
+                "name": "Ignoring the Order (Solving Left to Right)",
+                "description": "Students often calculate multiplication and division sequentially without respecting the grouping (parentheses) first. For example, they might calculate A × B ÷ C as (A × B) ÷ C, even if a proper grouping (parentheses) was needed.",
+                "correction": "Always look for parentheses ( ) or brackets first. Solve *everything* inside them before moving to the next step of the PEDMAS rule."
+              },
+              {
+                "name": "Mixing Up Multiplication and Division",
+                "description": "Students sometimes confuse which operation must be done first when multiplication and division are grouped together. They might perform division before multiplication, even if the multiplication appears first when reading left to right.",
+                "correction": "Remember the rule: Move left to right! If you see multiplication and division together (e.g., 4 ÷ 2 × 3), you must do 4 ÷ 2 first, and *then* multiply the result by 3."
+              },
+              {
+                "name": "Over-relying on Integer Math",
+                "description": "When dealing with fractions, students sometimes treat the numbers as whole numbers, forgetting to keep the denominator structure throughout the calculation, especially during addition/subtraction.",
+                "correction": "Treat the numerator and the denominator separately. When you add or subtract fractions, you must always use a common denominator."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "2": {
+      "label": "all-mastered",
+      "n_students": 3,
+      "path": [],
+      "note": "all skills mastered, no remediation needed"
+    }
+  }
+}
