@@ -10,8 +10,57 @@ The pilot domain is the **Fractions** unit for upper-primary / JHS (B.S. 4–6) 
 
 ---
 
+## For hackathon judges — start here
+
+### Quick inspection — 5 minutes, no LLM required
+
+The fastest way to verify the project. You don't need Ollama or any model running; the bundled demo workspace points at a complete pre-computed diagnostic (JHS 2A, 40 students, 26 items, three pedagogical clusters, LLM-authored remediation packs, printable PDFs).
+
+Requires Python 3.11+ and ~3 GB free disk for dependencies (most of that is OpenCV + scipy + scikit-learn — there's no PyTorch in the inspection path).
+
+```bash
+git clone https://github.com/<your-username>/mehuwo.git
+cd mehuwo
+python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run ui/app.py
+```
+
+Open `http://localhost:8501`, click **Open demo workspace** on the home page, then click through the five sidebar pages. The Ollama pill in the sidebar will show **red** — that's expected and gates only the LLM-driven buttons, which you don't need for inspection.
+
+**Try the recognition pipeline live.** On *Score & Mastery* (page 3), open the *From roster scan* tab and click **"Or: try the workspace's own roster"**. The pipeline detects the ArUco fiducials on each page of the printed sheet, solves a perspective homography to a canonical mm-pixel canvas, and classifies every tick cell. Expand the *Debug overlays* panel after it runs to see the rectified pages with red rectangles drawn around every cell the classifier touched — visual proof that the recognition step works end-to-end.
+
+### Full agentic pipeline with Gemma 4 — add 5 more minutes
+
+To drive the LLM-authored steps (item-bank generation, cluster narratives, remediation content) you'll need a local [Ollama](https://ollama.com/) daemon with `gemma4:e4b` pulled. In a second terminal:
+
+```bash
+ollama serve
+ollama pull gemma4:e4b      # ~3 GB download, one-time
+```
+
+Reload the Streamlit page; the Ollama pill turns green. On the home page click **Create workspace**, then drive the pipeline from page 1 through page 5. Item-bank generation streams the agent's tool-call log live, with running counts of verifier-accepted vs verifier-rejected items so you can watch the arithmetic-verification loop in action.
+
+### Suggested tour (in order, ~3 minutes after install)
+
+1. **Home** — Ollama pill in the sidebar (red without daemon, green with). Open demo workspace.
+2. **Page 1 — Topic & Items.** The skill graph for the fractions unit + the bundled item bank (26 arithmetically-verified MCQs).
+3. **Page 2 — Materials.** The printable quiz PDF, the answer key, and the roster sheet with its ArUco fiducial corners.
+4. **Page 3 — Score & Mastery.** Click *Or: try the workspace's own roster* in the *From roster scan* tab — recognition runs live, debug overlays render. Then click *Run scoring* for per-skill mastery.
+5. **Page 4 — Clusters & Path.** DAG-depth-aware cluster labels (`foundation-gap` / `middle-gap` / `leaf-gap` / `broad-gap` / `all-mastered`), centroid heatmap, topo-sorted remediation per cluster.
+6. **Page 5 — Author & Print.** Pre-rendered cluster diagnostic report and the final remediation pack PDF (one teaching micro-pack per deficit skill per cluster).
+
+### Where to look for the verification material
+
+- **Technical writeup:** [Kaggle submission](https://kaggle.com/REPLACE-ME) — 1500-word technical paper covering architecture, the three places Gemma 4 sits in the pipeline, and the engineering choices behind each.
+- **Video pitch:** [3-minute YouTube demo](https://youtu.be/REPLACE-ME).
+- **Source of truth:** this repository — every screen in the UI is reproducible from what's here.
+
+---
+
 ## Table of contents
 
+0. [For hackathon judges — start here](#for-hackathon-judges--start-here)
 1. [Why](#why)
 2. [How it works](#how-it-works)
 3. [Repository layout](#repository-layout)
