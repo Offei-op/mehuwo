@@ -58,7 +58,8 @@ The system is built to run offline on modest hardware: a local Ollama daemon, a 
                                        [class fills in roster sheet on paper]
                                                               │
                                                               ▼
-                                       [OCR pipeline — NOT YET BUILT]
+                                  recognition/recognition_pipeline.py
+                                  (ArUco rectification + tick classifier)
                                                               │
                                                               ▼
                                                        results.xlsx
@@ -115,8 +116,9 @@ mehuwo/
 │   ├── pdf_fonts.py               Register a unicode-safe font
 │   └── pdf_text.py                Sanitise LLM output for reportlab paragraphs
 │
-├── recognition/                   Paper sheet generation + scoring
+├── recognition/                   Paper sheet generation, OCR, scoring
 │   ├── score_sheet_template.py    A4 roster sheet with ArUco fiducials
+│   ├── recognition_pipeline.py    Scanned sheets → results.xlsx (ArUco + ticks)
 │   └── scoring_layer.py           Per-item correctness → per-skill mastery
 │
 ├── mastery/                       Clustering + path planning
@@ -127,9 +129,18 @@ mehuwo/
 │   ├── test_tool_calling.py       Smoke test: does this Ollama+Gemma honour tools?
 │   └── scoring_layer.py           Stub
 │
+├── ui/                            Streamlit teacher dashboard
+│   ├── app.py                     Home — workspace lifecycle + progress
+│   ├── pages/                     One Streamlit page per pipeline stage (1–5)
+│   ├── lib/                       state · runners · viz · demo-data helpers
+│   ├── styles.css                 Custom palette + typographic primitives
+│   ├── .streamlit/config.toml     Theme config
+│   └── README.md                  UI-specific docs (workspace model, troubleshooting)
+│
 ├── api/                           (empty — planned FastAPI service)
-├── data/                          (empty — planned data store)
-├── ui/                            (empty — planned Streamlit UI)
+├── data/
+│   ├── runs/                      One subdirectory per class diagnostic run
+│   └── _demo/                     Bundled demo workspace (no LLM required)
 │
 ├── requirements.txt
 ├── roster_test.pdf                Example: 120 students × 26 items, 3 pages
@@ -194,16 +205,24 @@ python curriculum/make_quiz_pdf.py work/bank.json \
 python recognition/score_sheet_template.py
 #    Produces roster_test.pdf + roster_test_cells.json in CWD as a demo.
 
-# --- after class sits the quiz and the recognition pipeline writes
-#     results.xlsx (one row per student, item_1..item_N + scored flag) ---
+# --- after class sits the quiz, the teacher marks correctness on the
+#     roster sheet (one tick per (student, item) means correct), then
+#     scans the sheet(s) to PDF or JPG ---
 
-# 5) Convert per-item correctness to per-skill mastery
+# 5) Recognise the scanned roster -> results.xlsx
+python recognition/recognition_pipeline.py \
+    --cells work/roster_cells.json \
+    --scans scans/page1.jpg scans/page2.jpg scans/page3.jpg \
+    --output work/results.xlsx \
+    --debug-dir work/recognition_debug
+
+# 6) Convert per-item correctness to per-skill mastery
 python recognition/scoring_layer.py \
     --results work/results.xlsx \
     --bank work/bank.json \
     --output work/mastery.xlsx
 
-# 6) Cluster students by mastery profile
+# 7) Cluster students by mastery profile
 python mastery/clustering_layer.py \
     --mastery work/mastery.xlsx \
     --bank work/bank.json \
@@ -211,19 +230,19 @@ python mastery/clustering_layer.py \
     --summary work/cluster_summary.xlsx \
     --k 3 --debug-dir work/debug
 
-# 7) Build a remediation path through the skill graph for each cluster
+# 8) Build a remediation path through the skill graph for each cluster
 python mastery/remediation_layer.py \
     --mastery-clustered work/mastery_clustered.xlsx \
     --bank work/bank.json \
     --cluster-paths work/cluster_paths.xlsx
 
-# 8) Author cluster-level diagnostic narratives (LLM)
+# 9) Author cluster-level diagnostic narratives (LLM)
 python agent/cluster_narrative.py \
     --cluster-summary work/cluster_summary.xlsx \
     --bank work/bank.json \
     --output work/cluster_summary_with_narratives.xlsx
 
-# 9) Author per-(cluster, skill) teaching micro-packs (LLM)
+# 10) Author per-(cluster, skill) teaching micro-packs (LLM)
 python agent/remediation_content.py \
     --cluster-paths work/cluster_paths.xlsx \
     --cluster-summary work/cluster_summary.xlsx \
@@ -231,7 +250,7 @@ python agent/remediation_content.py \
     --bank work/bank.json \
     --output work/remediation_pack.json
 
-# 10) Print teacher-facing PDFs
+# 11) Print teacher-facing PDFs
 python agent/cluster_report_pdf.py \
     --cluster-summary work/cluster_summary_with_narratives.xlsx \
     --bank work/bank.json \
@@ -241,6 +260,8 @@ python agent/remediation_to_pdf.py \
     --pack work/remediation_pack.json \
     --output work/remediation_pack.pdf
 ```
+
+The whole sequence above is also driveable from the Streamlit dashboard — see the **Streamlit teacher dashboard** section below — which is the path we recommend for non-technical users.
 
 ---
 
@@ -312,6 +333,35 @@ Each page carries four **ArUco fiducials** (DICT_4X4_50) at the corners for pers
 
 A deterministic **quiz_id** (SHA-256 of students + items + title, truncated) is printed on every page and embedded in `cells.json`. The recognition pipeline refuses to apply the wrong metadata to the wrong sheet — protection against the obvious failure mode of teachers feeding a scanned sheet against the cells JSON from a different quiz.
 
+### Recognition
+
+```bash
+python recognition/recognition_pipeline.py \
+    --cells roster_cells.json \
+    --scans scan1.pdf scan2.jpg ... \
+    --output results.xlsx \
+    [--debug-dir recognition_debug/] \
+    [--fill-threshold 0.08] [--margin-frac 0.20] \
+    [--px-per-mm 8.0] [--pdf-scale 2.0] \
+    [--expect-quiz-id q_xxxxxxxxxxxx]
+```
+
+Closes the loop between the printed roster sheet and the rest of the pipeline. Each scan page is decoded independently:
+
+1. **Detect** DICT_4X4_50 ArUco markers in the page image.
+2. **Identify** which roster page this is from the marker IDs (page *k* has IDs `[4k..4k+3]`). Pages can be scanned in any order, mixed into one PDF or split across many image files — the pipeline self-sorts. Pages whose four markers don't all detect are skipped with a warning rather than processed with a partial homography.
+3. **Rectify** the page via a perspective homography from the four outer corners of the fiducial box (known in millimetres from the print step) to a canonical mm-pixel canvas.
+4. **Crop** each `(student, item)` cell at the mm coordinates recorded in `roster_cells.json`.
+5. **Classify** ticked vs blank using a fill-fraction threshold on the central region of the cell (the outer 20 % is shrunk off each side so grid lines and the row's index/name text don't poison the metric; Otsu binarisation makes the threshold robust to lighting variation across the scanned page).
+
+The classifier is pluggable: `HeuristicTickClassifier` is the default (no training data required); a CNN backend can be slotted in by subclassing `TickClassifier`.
+
+Inputs may be `.pdf` (each page processed independently via `pypdfium2`), `.png`, `.jpg/.jpeg`, `.tif/.tiff`, or `.bmp`. Output `results.xlsx` carries the columns the scoring layer expects (`student_idx`, `student_name`, `item_1..item_N`, `scored`) plus a second `scan_meta` sheet recording which pages were processed, the quiz_id, and the classifier configuration — useful for downstream auditing.
+
+`--expect-quiz-id` is the metadata-misuse guardrail: pass the `quiz_id` that should be on the sheets and the pipeline refuses to run if `roster_cells.json` says something else. `--debug-dir` writes the rectified page with cell rectangles overlaid (green = ticked, red = blank), which is invaluable when calibrating the fill threshold against a new printer / scanner combination.
+
+**Students whose page was missing from the scans come through as `scored=0` with all item columns zero** — the scoring layer converts these to NaN downstream. This matters: "we didn't read their sheet" is not the same as "they got everything wrong".
+
 ### Scoring
 
 ```bash
@@ -323,7 +373,7 @@ python recognition/scoring_layer.py \
     [--partial-threshold 0.5] [--mastered-threshold 1.0]
 ```
 
-`results.xlsx` (produced by the OCR step) has columns `student_idx`, `student_name`, `item_1` … `item_N`, `scored`. `scored=0` for any student whose sheet wasn't successfully processed; their mastery comes out as **NaN**, not zero. This distinction matters downstream — an unprocessed student is not a student who got everything wrong.
+`results.xlsx` (produced by `recognition/recognition_pipeline.py`) has columns `student_idx`, `student_name`, `item_1` … `item_N`, `scored`. `scored=0` for any student whose sheet wasn't successfully processed; their mastery comes out as **NaN**, not zero. This distinction matters downstream — an unprocessed student is not a student who got everything wrong.
 
 **Mastery on skill K is the mean correctness on the single-skill items whose `target_node == K`.** Multi-skill items are deliberately excluded from the primary score because they conflate skills; they appear in the optional audit file so disagreements with the pure-item signal are visible to the teacher.
 
@@ -425,6 +475,28 @@ python agent/remediation_to_pdf.py \
     --output-dir per_cluster_pdfs/ --split
 ```
 
+### Streamlit teacher dashboard
+
+```bash
+streamlit run ui/app.py
+```
+
+A non-technical wrapper over the entire CLI pipeline. The dashboard is built around a **workspace model** — one diagnostic run per class lives in `data/runs/<slug>/`, with every artefact (bank, quiz PDFs, results, mastery, clusters, narratives, packs, final PDFs) stored alongside a `workspace.json` manifest. Workspaces persist across restarts; the home page lists them, lets you reopen one, or spin up the **demo workspace** that points at the bundled fractions artefacts so a teacher can click through every screen without an LLM.
+
+Five sidebar pages mirror the pipeline stages:
+
+1. **Topic & Items** — load or upload a topic spec; load, upload, or generate an item bank. Generation streams the agent's tool-call log live with running counts of verifier-accepted vs. verifier-rejected items.
+2. **Materials** — render quiz + answer key PDFs; generate the roster sheet (class size, names, school label, quiz title all editable).
+3. **Score & Mastery** — get a `results.xlsx` into the workspace (three tabs: upload one, generate synthetic for demo, or — once wired — produce one from a scanned roster via `recognition_pipeline.py`), then run the scoring layer. Mastery distribution and per-student histogram render inline using the same palette as the PDF reports.
+4. **Clusters & Path** — run clustering with debug plots and the topological remediation layer. Per-cluster cards show the inferred label (`foundation-gap` / `middle-gap` / `leaf-gap` / `broad-gap` / `all-mastered`) as a pill, with the centroid heatmap and cluster-size bar inline.
+5. **Author & Print** — the two LLM-authoring steps (cluster narratives, remediation content) plus the two PDF renderers. The content step defaults to `--resume` so a crash partway through doesn't waste tokens.
+
+The dashboard **does not reimplement any of the pipeline** — `ui/lib/runners.py` calls each CLI script via `subprocess.Popen` and yields `(stream, line)` tuples for live log display, so a crash in `bank_generator.py` doesn't bring down the Streamlit server. The Ollama daemon's reachability is surfaced as a coloured pill on the home page; LLM-driven buttons disable themselves when it's red.
+
+A custom CSS layer (`ui/styles.css`) defines the typography and palette — muted forest greens, warm amber, dusty plum on warm cream — and the same hex values are mirrored in `ui/lib/viz.PALETTE` so the on-screen charts and the printed PDF charts read as a single visual system.
+
+See `ui/README.md` for the workspace lifecycle, the design notes, and troubleshooting (Ollama host, widget-key collisions, etc.).
+
 ---
 
 ## Data contracts
@@ -486,7 +558,7 @@ python agent/remediation_to_pdf.py \
 
 ### `results.xlsx`
 
-Produced by the recognition step (not yet built). One row per student.
+Produced by `recognition/recognition_pipeline.py`. One row per student.
 
 | student_idx | student_name | item_1 | item_2 | … | item_N | scored |
 |-------------|--------------|--------|--------|---|--------|--------|
@@ -557,6 +629,7 @@ When a model is asked to produce ⅔ (UTF-8 bytes `0xC2 0xBE`) and the bytes get
 | Bank validation gate | **Working** |
 | Quiz PDF + answer key | **Working** |
 | Roster sheet with ArUco fiducials + cell metadata JSON | **Working** |
+| Recognition (scans → results.xlsx via ArUco rectify + tick classifier) | **Working** |
 | Scoring layer (results.xlsx → mastery.xlsx) | **Working** |
 | Hierarchical clustering with silhouette validation + debug plots | **Working** |
 | Topological remediation path through the DAG | **Working** |
@@ -564,21 +637,21 @@ When a model is asked to produce ⅔ (UTF-8 bytes `0xC2 0xBE`) and the bytes get
 | LLM remediation packs (explain + worked example + practice + mistakes) | **Working** |
 | Cluster report PDF | **Working** |
 | Remediation pack PDF | **Working** |
+| Streamlit teacher dashboard (workspace model, live log streaming, demo mode) | **Working** |
 
 ### What's missing
 
-- **Recognition / OCR step.** The roster sheet is printable and has fiducials + per-cell coordinates; the scoring layer consumes `results.xlsx`. The thing in the middle — open the scanned sheet, rectify against the ArUco corners, classify each tick cell, write `results.xlsx` — is not yet implemented. `opencv-contrib-python`, `pillow`, `numpy`, `torch`, and `torchvision` are in `requirements.txt` in anticipation (CNN fallback for the tick classifier). This is the critical missing middle.
 - **API layer.** `api/` is empty; `fastapi` and `uvicorn` are in `requirements.txt` but no service is built.
-- **UI.** `ui/` is empty; `streamlit` is in `requirements.txt`. The intent is a teacher-facing dashboard for uploading a scanned sheet and viewing the resulting reports.
-- **Data store.** `data/` is empty; `sqlalchemy` is in `requirements.txt`. Currently every layer reads/writes files directly.
+- **Recognition wired into the dashboard.** The recognition pipeline (`recognition/recognition_pipeline.py`) and the Streamlit dashboard both work, but they aren't joined up yet — Page 3's "From roster scan" tab is still a "not yet available" placeholder. Wiring it is a one-runner addition in `ui/lib/runners.py` plus a tab body that calls it with the workspace's `roster_cells.json`.
+- **Database-backed run history.** `data/runs/` is a flat directory of workspaces; `sqlalchemy` is in `requirements.txt` for the eventual move to a queryable run store (multi-class trends, cross-term comparisons, teacher dashboards across classes).
 - **Add/subtract fractions, common denominator.** The fractions skill graph deliberately omits these (it's not a complete unit). A v2 of `topic_spec_fractions.json` should add them — PEDMAS items currently avoid `+/-` on fractions for this reason, which limits diagnostic range.
-- **Calibration data.** No labelled set of filled-in sheets to measure tick-classification accuracy against once the CV step is built.
+- **Calibration data for the tick classifier.** The heuristic `HeuristicTickClassifier` is the only backend shipped today. A labelled set of filled-in sheets from real classrooms would let us measure its accuracy and, if needed, train the CNN fallback that `torch` / `torchvision` in `requirements.txt` were always anticipating.
 
 ### Suggested next steps
 
-1. Build the OCR pipeline: ArUco corner detection → homography → tick-cell crops → either an OpenCV threshold-on-fill heuristic or a small CNN classifier (the path the requirements file hints at). Calibrate against a labelled set of real filled-in sheets.
-2. Extend the topic spec with Add/Sub fractions and Common denominator nodes; regenerate the bank.
-3. Add a Streamlit UI that wraps the CLI steps for a non-technical user.
+1. Wire `recognition_pipeline.py` into Page 3 of the dashboard — add a `run_recognition(...)` wrapper in `ui/lib/runners.py` and replace the placeholder body of the third tab with file-upload + `--debug-dir` preview.
+2. Collect a labelled set of real filled-in roster sheets from a partner school and calibrate `--fill-threshold` / `--margin-frac` (or train the CNN fallback) against it. The heuristic classifier has not yet been validated on real-world scans — only on the synthetic round-trip in the test suite.
+3. Extend the topic spec with Add/Sub fractions and Common denominator nodes; regenerate the bank.
 4. Unit tests around the verifier, the depth/topo functions, and the cluster-label classifier.
 
 ---
@@ -602,8 +675,9 @@ Test coverage is currently shallow — a single smoke test for tool calling, plu
 - **Clustering / stats:** SciPy hierarchical clustering, scikit-learn silhouette
 - **Data:** pandas, openpyxl (via pandas), numpy
 - **PDF:** reportlab
-- **Computer vision (planned):** OpenCV with `contrib` (ArUco), Pillow, PyTorch (CNN fallback)
-- **Plotting:** matplotlib (debug plots only)
+- **Computer vision:** OpenCV with `contrib` (ArUco) for fiducial detection and homography; `pypdfium2` for rendering PDF scans; Pillow / numpy for image manipulation. A PyTorch-based CNN tick classifier is supported as an interface but not yet trained — the shipped default is an Otsu + fill-fraction heuristic.
+- **Plotting:** matplotlib — for clustering debug plots, palette-matched UI charts, and embedded report imagery
+- **UI:** Streamlit with a custom CSS layer; one workspace per class; subprocess-based runners over the existing CLI scripts
 
 ---
 
