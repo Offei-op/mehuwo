@@ -1,0 +1,1126 @@
+{
+  "meta": {
+    "subject": "Fractions",
+    "curriculum_context": "Ghanaian upper primary (B.S. 4-6), generated against a 10-node skill graph.",
+    "node_order": [
+      "Multiplication",
+      "Division",
+      "Concept_of_fraction",
+      "Equivalent_fractions",
+      "Simplifying_fractions",
+      "Mixed_to_improper",
+      "Improper_to_mixed",
+      "Multiplying_fractions",
+      "Dividing_fractions",
+      "PEDMAS"
+    ],
+    "q_vector_convention": "A 10-bit list aligned with node_order. A 1 indicates the skill is cognitively required to perform the procedure correctly. Minimum-cognitive convention: only skills strictly needed are marked, not all DAG ancestors. Under KST with a correct surmise relation, the lattice handles ancestor credit automatically. If you switch to strict DINA, expand each q_vector to include all DAG ancestors of the marked skills.",
+    "design_notes": [
+      "Items deliberately avoid relying on addition or subtraction of fractions since those nodes are absent from the user's DAG. A production version should add 'Add/subtract fractions' and 'Common denominator' nodes before generating PEDMAS items that mix +/- with x/÷.",
+      "All items are multiple-choice for paper administration and machine-checkable scoring. Distractors are aligned to named misconceptions from the misconceptions section where possible.",
+      "Currency uses Ghana Cedis (GH₵). Names and contexts use Ghanaian referents (Kofi, Ama, Akua, Kwame, Yaa, Esi; kelewele, jollof, plantain, watermelon, market settings).",
+      "Vulgar-fraction unicode characters (½, ⅓, ⅔, ¼, ¾, ⅕, ⅖, ⅗, ⅘) are used for mixed numbers; slash notation (a/b) for general fractions.",
+      "Each item has a distractor_rationales field giving the misconception each wrong option targets, useful both for review and for downstream misconception-level diagnosis beyond skill mastery."
+    ],
+    "prerequisites": {
+      "Multiplication": [],
+      "Division": [],
+      "Concept_of_fraction": [],
+      "Mixed_to_improper": [
+        "Multiplication",
+        "Concept_of_fraction"
+      ],
+      "Improper_to_mixed": [
+        "Division",
+        "Concept_of_fraction"
+      ],
+      "Equivalent_fractions": [
+        "Multiplication",
+        "Concept_of_fraction"
+      ],
+      "Simplifying_fractions": [
+        "Equivalent_fractions"
+      ],
+      "Multiplying_fractions": [
+        "Multiplication",
+        "Simplifying_fractions"
+      ],
+      "Dividing_fractions": [
+        "Division",
+        "Simplifying_fractions",
+        "Multiplying_fractions"
+      ],
+      "PEDMAS": [
+        "Multiplying_fractions",
+        "Dividing_fractions"
+      ]
+    },
+    "short_labels": {
+      "Multiplication": "Mult",
+      "Division": "Div",
+      "Concept_of_fraction": "Concept",
+      "Equivalent_fractions": "Equiv",
+      "Simplifying_fractions": "Simp",
+      "Mixed_to_improper": "M→I",
+      "Improper_to_mixed": "I→M",
+      "Multiplying_fractions": "×Fr",
+      "Dividing_fractions": "÷Fr",
+      "PEDMAS": "PED"
+    }
+  },
+  "misconceptions": {
+    "Multiplication": [
+      {
+        "label": "confuses_with_addition",
+        "description": "Computes a sum instead of a product (e.g. 6 × 7 = 13)."
+      },
+      {
+        "label": "drops_zero_in_tens",
+        "description": "Multiplies the non-zero digits but forgets to attach the trailing zero when multiplying by tens (e.g. 28 × 30 = 84 instead of 840)."
+      },
+      {
+        "label": "ignores_place_value",
+        "description": "Multiplies digit-by-digit without preserving place value (e.g. 23 × 12 → 2×1 + 3×2 = 8)."
+      },
+      {
+        "label": "multiplies_by_zero_wrong",
+        "description": "Treats × 0 as identity (e.g. 5 × 0 = 5)."
+      },
+      {
+        "label": "tables_breakdown_above_seven",
+        "description": "Confident on 2-5 tables but breaks down at 6-9 (e.g. 7 × 8 produced as 54 or 64)."
+      }
+    ],
+    "Division": [
+      {
+        "label": "swaps_dividend_and_divisor",
+        "description": "Computes divisor ÷ dividend (e.g. for 12 ÷ 4 the student computes 4 ÷ 12)."
+      },
+      {
+        "label": "drops_remainder",
+        "description": "Reports only the quotient when a remainder exists (e.g. 17 ÷ 4 = 4)."
+      },
+      {
+        "label": "smaller_cannot_be_divided",
+        "description": "Believes a smaller number cannot be divided by a larger one (e.g. 3 ÷ 6 = 0 or 'undefined')."
+      },
+      {
+        "label": "division_always_shrinks",
+        "description": "Believes the quotient must be smaller than the dividend (so 6 ÷ ½ should be < 6)."
+      },
+      {
+        "label": "misaligns_place_value_long_div",
+        "description": "Brings down digits to the wrong column in long division, producing answers off by a factor of ten."
+      }
+    ],
+    "Concept_of_fraction": [
+      {
+        "label": "treats_as_two_whole_numbers",
+        "description": "Reads 1/2 as two separate numbers rather than as a single quantity."
+      },
+      {
+        "label": "ignores_equal_parts_requirement",
+        "description": "Counts any partition as a valid fraction even when the parts are unequal."
+      },
+      {
+        "label": "shaded_over_unshaded",
+        "description": "Writes the fraction as shaded:unshaded rather than shaded:total (e.g. 3 of 5 shaded read as 3/2)."
+      },
+      {
+        "label": "larger_denominator_is_larger_fraction",
+        "description": "Believes 1/8 > 1/4 because 8 > 4."
+      },
+      {
+        "label": "fraction_only_means_division",
+        "description": "Recognises 1/2 as '1 divided by 2' = 0.5 but cannot identify 1/2 of a shape, or vice versa."
+      }
+    ],
+    "Equivalent_fractions": [
+      {
+        "label": "adds_same_number_to_top_and_bottom",
+        "description": "Believes 1/2 = 2/3 because 1 became 2 and 2 became 3 (added 1 to each)."
+      },
+      {
+        "label": "multiplies_only_one_part",
+        "description": "Multiplies the numerator (or only the denominator) by a factor (e.g. 1/2 = 2/2)."
+      },
+      {
+        "label": "thinks_visual_size_matters",
+        "description": "Believes equivalence depends on the size of the diagram drawn."
+      },
+      {
+        "label": "different_numbers_means_different_fraction",
+        "description": "Cannot accept that 1/3 and 2/6 are the same value because the digits differ."
+      },
+      {
+        "label": "scales_top_and_bottom_by_different_factors",
+        "description": "Multiplies the top and bottom by different numbers (e.g. 1/2 = 2/6, top × 2, bottom × 3)."
+      }
+    ],
+    "Simplifying_fractions": [
+      {
+        "label": "reduces_only_numerator",
+        "description": "Divides only the top of the fraction (e.g. 8/12 → 1/12)."
+      },
+      {
+        "label": "reduces_only_denominator",
+        "description": "Divides only the bottom (e.g. 8/12 → 8/3)."
+      },
+      {
+        "label": "stops_at_first_common_factor",
+        "description": "Divides by a small common factor and stops, even when further reduction is possible (e.g. 24/36 → 12/18, leaves as final)."
+      },
+      {
+        "label": "subtracts_instead_of_divides",
+        "description": "Subtracts a common number from top and bottom (e.g. 24/36 → 22/34)."
+      },
+      {
+        "label": "thinks_simplifying_changes_value",
+        "description": "Believes 6/9 and 2/3 are different fractions with different values."
+      }
+    ],
+    "Mixed_to_improper": [
+      {
+        "label": "writes_whole_as_numerator",
+        "description": "Converts 2⅓ to 2/3, ignoring the existing fractional part."
+      },
+      {
+        "label": "adds_whole_and_numerator",
+        "description": "Computes (whole + numerator) over denominator (e.g. 2⅓ → 3/3)."
+      },
+      {
+        "label": "forgets_to_add_numerator",
+        "description": "Multiplies whole × denominator but stops without adding the existing numerator (e.g. 2⅓ → 6/3)."
+      },
+      {
+        "label": "multiplies_whole_by_numerator",
+        "description": "Computes (whole × numerator) over denominator (e.g. 2⅓ → 2/3 because 2×1 = 2)."
+      },
+      {
+        "label": "changes_the_denominator",
+        "description": "Alters the denominator during the conversion."
+      }
+    ],
+    "Improper_to_mixed": [
+      {
+        "label": "swaps_quotient_and_remainder",
+        "description": "Places the remainder where the whole-number quotient should go and vice versa (e.g. 11/4 → 3¼ instead of 2¾)."
+      },
+      {
+        "label": "drops_remainder",
+        "description": "Reports only the whole-number quotient with the fraction missing (e.g. 11/4 → 2)."
+      },
+      {
+        "label": "uses_quotient_as_denominator",
+        "description": "Uses the quotient as the denominator in the fractional part."
+      },
+      {
+        "label": "no_conversion_done",
+        "description": "Leaves the improper fraction unchanged, assuming it is already in the requested form."
+      },
+      {
+        "label": "denominator_changes",
+        "description": "Modifies the denominator instead of keeping it constant through the conversion."
+      }
+    ],
+    "Multiplying_fractions": [
+      {
+        "label": "adds_numerators_and_denominators",
+        "description": "Computes (a+c)/(b+d) instead of (a×c)/(b×d) (e.g. 1/2 × 3/4 = 4/6)."
+      },
+      {
+        "label": "cross_multiplies",
+        "description": "Computes (a×d)/(b×c) (e.g. 1/2 × 3/4 → 4/6)."
+      },
+      {
+        "label": "finds_common_denominator_first",
+        "description": "Treats multiplication like addition: rewrites with a common denominator before multiplying."
+      },
+      {
+        "label": "multiplies_only_numerators",
+        "description": "Multiplies the numerators but keeps one of the original denominators (e.g. 2/3 × 4/5 = 8/3)."
+      },
+      {
+        "label": "expects_product_to_be_larger",
+        "description": "Rejects answers smaller than both factors because the student believes the product must exceed both."
+      }
+    ],
+    "Dividing_fractions": [
+      {
+        "label": "forgets_to_invert",
+        "description": "Just multiplies the two fractions as written (e.g. 3/4 ÷ 1/2 = 3/8)."
+      },
+      {
+        "label": "inverts_wrong_fraction",
+        "description": "Inverts the dividend instead of the divisor (e.g. 3/4 ÷ 1/2 = 4/3 × 1/2 = 4/6)."
+      },
+      {
+        "label": "inverts_both_fractions",
+        "description": "Flips both fractions before multiplying (e.g. 3/4 ÷ 1/2 = 4/3 × 2/1 = 8/3)."
+      },
+      {
+        "label": "divides_top_and_bottom_directly",
+        "description": "Divides numerator by numerator and denominator by denominator (e.g. 6/8 ÷ 2/4 = 3/2)."
+      },
+      {
+        "label": "expects_quotient_to_be_smaller",
+        "description": "Believes division must yield a smaller result, so rejects quotients > 1 when dividing by a fraction < 1."
+      }
+    ],
+    "PEDMAS": [
+      {
+        "label": "works_left_to_right",
+        "description": "Computes the expression in written order regardless of precedence (e.g. 1/2 × 2/3 ÷ 1/4 treated as ((1/2 × 2/3) × 1/4) when ÷ is mishandled)."
+      },
+      {
+        "label": "separates_multiplication_from_division",
+        "description": "Believes all × must happen before all ÷ (or vice versa), instead of left-to-right within the same precedence tier."
+      },
+      {
+        "label": "ignores_brackets",
+        "description": "Computes through brackets as if they were not present."
+      },
+      {
+        "label": "treats_division_as_multiplication",
+        "description": "Converts ÷ to × without performing the inversion step, conflating the two operations under PEDMAS."
+      },
+      {
+        "label": "drops_operation_during_chaining",
+        "description": "When chaining three or more operations, forgets or skips one (e.g. 1/2 × 2/3 ÷ 1/4 → student stops at 1/2 × 2/3)."
+      }
+    ]
+  },
+  "single_skill_items": [
+    {
+      "item_id": "MULT_001",
+      "stem": "What is 6 × 7?",
+      "options": [
+        "13",
+        "40",
+        "42",
+        "48"
+      ],
+      "correct_answer": "42",
+      "q_vector": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Multiplication",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "13": "confuses_with_addition (6 + 7 = 13)",
+        "40": "off-by-two slip on the 6 times table",
+        "48": "tables_breakdown_above_seven (computes 6 × 8 instead)"
+      },
+      "rationale": "Basic multiplication fact. The key distractor (13) screens for students still adding when asked to multiply."
+    },
+    {
+      "item_id": "MULT_002",
+      "stem": "Kofi has 15 baskets of mangoes. Each basket holds 30 mangoes. How many mangoes does he have in total?",
+      "options": [
+        "45",
+        "150",
+        "450",
+        "4500"
+      ],
+      "correct_answer": "450",
+      "q_vector": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Multiplication",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "45": "confuses_with_addition (15 + 30)",
+        "150": "drops_zero_in_tens (computes 15 × 3 = 45 then attaches one zero incorrectly, or 15 × 30 read as 15 × 10)",
+        "4500": "drops_zero_in_tens in the other direction (attaches an extra zero)"
+      },
+      "rationale": "Two-digit by two-digit multiplication with a trailing zero. Distractors target the most common place-value errors."
+    },
+    {
+      "item_id": "DIV_001",
+      "stem": "Ama wants to share 17 oranges equally among 4 friends. How many oranges does each friend get, and how many are left over?",
+      "options": [
+        "3 each, 5 left over",
+        "4 each, 0 left over",
+        "4 each, 1 left over",
+        "5 each, 3 left over"
+      ],
+      "correct_answer": "4 each, 1 left over",
+      "q_vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Division",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "3 each, 5 left over": "computes 17 ÷ 5 instead of 17 ÷ 4, or other off-by-one error",
+        "4 each, 0 left over": "drops_remainder (reports just the quotient, ignores leftover)",
+        "5 each, 3 left over": "swaps_dividend_and_divisor (treats 4 as dividend in part)"
+      },
+      "rationale": "Whole-number division with explicit remainder, framed as a sharing word problem."
+    },
+    {
+      "item_id": "DIV_002",
+      "stem": "What is 3 ÷ 6?",
+      "options": [
+        "0",
+        "0.5",
+        "2",
+        "Cannot be done"
+      ],
+      "correct_answer": "0.5",
+      "q_vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Division",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "0": "smaller_cannot_be_divided (treats result as 0)",
+        "2": "swaps_dividend_and_divisor (computes 6 ÷ 3)",
+        "Cannot be done": "smaller_cannot_be_divided in its explicit form"
+      },
+      "rationale": "Tests whether students accept dividing a smaller whole number by a larger one. Common misconception even at upper primary."
+    },
+    {
+      "item_id": "CONC_001",
+      "stem": "A rectangle is divided into 5 equal parts. 2 of those parts are shaded. What fraction of the rectangle is shaded?",
+      "options": [
+        "2/3",
+        "2/5",
+        "3/5",
+        "5/2"
+      ],
+      "correct_answer": "2/5",
+      "q_vector": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Concept_of_fraction",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "2/3": "shaded_over_unshaded (writes shaded:unshaded = 2:3)",
+        "3/5": "counts the unshaded parts instead",
+        "5/2": "treats_as_two_whole_numbers (writes whole-over-shaded)"
+      },
+      "rationale": "Foundational part-whole identification. Distractor 2/3 is the specific shaded:unshaded misconception."
+    },
+    {
+      "item_id": "CONC_002",
+      "stem": "Two friends each cut a kelewele plate. Kofi cuts his into 4 equal pieces and shades 1. Ama cuts hers into 4 pieces of different sizes and shades 1. Whose shaded part is exactly 1/4 of the whole?",
+      "options": [
+        "Both",
+        "Kofi only",
+        "Ama only",
+        "Neither"
+      ],
+      "correct_answer": "Kofi only",
+      "q_vector": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Concept_of_fraction",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "Both": "ignores_equal_parts_requirement (any 1-of-4 partition counts)",
+        "Ama only": "inverted misconception (rare)",
+        "Neither": "over-rejection, possibly does not recognise Kofi's case either"
+      },
+      "rationale": "Probes the equal-parts axiom directly. Distractor 'Both' is the canonical misconception."
+    },
+    {
+      "item_id": "EQV_001",
+      "stem": "Which fraction is equivalent to 2/3?",
+      "options": [
+        "2/6",
+        "3/4",
+        "4/6",
+        "5/6"
+      ],
+      "correct_answer": "4/6",
+      "q_vector": [
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Equivalent_fractions",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "2/6": "multiplies_only_one_part (denominator × 2, numerator unchanged)",
+        "3/4": "adds_same_number_to_top_and_bottom (adds 1 to each)",
+        "5/6": "scales_top_and_bottom_by_different_factors or similar add-mismatch error"
+      },
+      "rationale": "Tests recognition of equivalence by integer scaling. Each distractor maps to a named procedural misconception."
+    },
+    {
+      "item_id": "EQV_002",
+      "stem": "Fill in the missing number: 3/5 = ?/15",
+      "options": [
+        "8",
+        "9",
+        "10",
+        "13"
+      ],
+      "correct_answer": "9",
+      "q_vector": [
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Equivalent_fractions",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "8": "additive misconception (5 + 10 = 15 so 3 + 5 = 8)",
+        "10": "scales_top_and_bottom_by_different_factors (multiplies bottom by 3 but top by some other amount)",
+        "13": "adds_same_number_to_top_and_bottom (adds 10 to each)"
+      },
+      "rationale": "Requires recognising the multiplicative scale factor between the two denominators (×3) and applying it to the numerator."
+    },
+    {
+      "item_id": "SIMP_001",
+      "stem": "Simplify 6/9 to its lowest terms.",
+      "options": [
+        "1/3",
+        "2/3",
+        "3/4",
+        "6/9"
+      ],
+      "correct_answer": "2/3",
+      "q_vector": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Simplifying_fractions",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "1/3": "reduces_only_numerator (divides 6 by 3 but leaves 9, then writes 2/9 → simplified to 1/3 by further error) or random simplification",
+        "3/4": "subtracts_instead_of_divides (6-3 over 9-5) or other arithmetic error",
+        "6/9": "thinks_simplifying_changes_value (refuses to reduce)"
+      },
+      "rationale": "Single-step simplification by the GCD (3). 6/9 was chosen because the GCD is the only common factor, so partial reduction is impossible without arriving at the answer."
+    },
+    {
+      "item_id": "SIMP_002",
+      "stem": "Simplify 12/18.",
+      "options": [
+        "1/2",
+        "2/3",
+        "4/6",
+        "6/9"
+      ],
+      "correct_answer": "2/3",
+      "q_vector": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Simplifying_fractions",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "1/2": "incorrect partial reduction or wrong factor",
+        "4/6": "stops_at_first_common_factor (divides by 3 only, leaves at 4/6)",
+        "6/9": "stops_at_first_common_factor (divides by 2 only, leaves at 6/9)"
+      },
+      "rationale": "Multi-step simplification (GCD = 6). Distractors 4/6 and 6/9 both probe the 'stops at first common factor' misconception by representing each of the two intermediate states."
+    },
+    {
+      "item_id": "MTI_001",
+      "stem": "Convert 2⅓ to an improper fraction.",
+      "options": [
+        "2/3",
+        "3/3",
+        "6/3",
+        "7/3"
+      ],
+      "correct_answer": "7/3",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Mixed_to_improper",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "2/3": "writes_whole_as_numerator (ignores the whole-number computation entirely)",
+        "3/3": "adds_whole_and_numerator (2 + 1 = 3 over 3)",
+        "6/3": "forgets_to_add_numerator (computes 2 × 3 = 6, stops)"
+      },
+      "rationale": "Classic mixed-to-improper conversion. Each distractor captures a distinct named procedural error."
+    },
+    {
+      "item_id": "MTI_002",
+      "stem": "Ama bought 3¾ kg of yam at the market. Express this as an improper fraction in kg.",
+      "options": [
+        "7/4",
+        "12/4",
+        "13/4",
+        "15/4"
+      ],
+      "correct_answer": "15/4",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Mixed_to_improper",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "7/4": "adds_whole_and_numerator (3 + 3 = 6 ... but writes 3+4 = 7), or other adds-and-confuses error",
+        "12/4": "forgets_to_add_numerator (3 × 4 = 12, stops)",
+        "13/4": "miscount of the multiplication (3 × 4 = 12, then +1 instead of +3)"
+      },
+      "rationale": "Conversion in a word-problem context. The denominator 4 stresses students who memorised the procedure only for thirds."
+    },
+    {
+      "item_id": "ITM_001",
+      "stem": "Convert 11/4 to a mixed number.",
+      "options": [
+        "2¼",
+        "2¾",
+        "3¼",
+        "11/4"
+      ],
+      "correct_answer": "2¾",
+      "q_vector": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Improper_to_mixed",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "2¼": "uses_quotient_as_denominator or remainder confusion (correct quotient 2, but writes 1 instead of 3 for remainder)",
+        "3¼": "swaps_quotient_and_remainder (writes 3¼ instead of 2¾)",
+        "11/4": "no_conversion_done"
+      },
+      "rationale": "Improper-to-mixed conversion. Distractor 3¼ is the canonical quotient/remainder swap."
+    },
+    {
+      "item_id": "ITM_002",
+      "stem": "Akua walked 17/5 km from her home to the market. Write this distance as a mixed number.",
+      "options": [
+        "2⅖",
+        "3⅖",
+        "3⅗",
+        "5⅗"
+      ],
+      "correct_answer": "3⅖",
+      "q_vector": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "target_node": "Improper_to_mixed",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "2⅖": "drops the quotient by one (17 ÷ 5 mistaken as 12 ÷ 5)",
+        "3⅗": "swaps_quotient_and_remainder (writes remainder 3 instead of 2 over the denominator)",
+        "5⅗": "uses_quotient_as_denominator family error"
+      },
+      "rationale": "Conversion with denominator 5 (less rehearsed than 4). Word-problem framing tests transfer."
+    },
+    {
+      "item_id": "MUF_001",
+      "stem": "Compute 2/3 × 4/5.",
+      "options": [
+        "6/8",
+        "8/8",
+        "8/15",
+        "10/12"
+      ],
+      "correct_answer": "8/15",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "target_node": "Multiplying_fractions",
+      "difficulty_hint": "easy",
+      "distractor_rationales": {
+        "6/8": "adds_numerators_and_denominators (2+4 = 6, 3+5 = 8)",
+        "8/8": "multiplies tops correctly but adds bottoms or similar mixed error",
+        "10/12": "cross_multiplies (2×5, 3×4)"
+      },
+      "rationale": "Direct fraction multiplication. Distractors map cleanly onto the three classic procedural errors."
+    },
+    {
+      "item_id": "MUF_002",
+      "stem": "Yaa has 3/4 kg of rice. She uses 2/5 of it to cook jollof. How much rice did she use, in kg?",
+      "options": [
+        "5/9",
+        "5/20",
+        "6/20",
+        "5/4"
+      ],
+      "correct_answer": "6/20",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "target_node": "Multiplying_fractions",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "5/9": "adds_numerators_and_denominators (3+2 = 5, 4+5 = 9)",
+        "5/20": "adds numerators but multiplies denominators",
+        "5/4": "treats 'of' as 'plus' or other addition error"
+      },
+      "rationale": "Word-problem framing for fraction multiplication. The correct answer is intentionally not in lowest terms (3/10) to keep this a pure multiplication item; an alternative version requiring simplification appears as MULTI_003."
+    },
+    {
+      "item_id": "DIF_001",
+      "stem": "Compute 3/4 ÷ 1/2.",
+      "options": [
+        "1/2",
+        "3/8",
+        "6/4",
+        "8/3"
+      ],
+      "correct_answer": "6/4",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "target_node": "Dividing_fractions",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "1/2": "divides_top_and_bottom_directly (3÷1 over 4÷2 = 3/2, then mis-simplifies; or other slip)",
+        "3/8": "forgets_to_invert (multiplies as written)",
+        "8/3": "inverts_both_fractions (4/3 × 2/1 = 8/3)"
+      },
+      "rationale": "Canonical invert-and-multiply item. Distractors cover the three highest-frequency procedural failures named in the misconceptions list."
+    },
+    {
+      "item_id": "DIF_002",
+      "stem": "Kwame has 6/8 of a tray of meat pies. He divides his portion into pieces, each one 1/4 of a full tray. How many pieces does he get?",
+      "options": [
+        "1/3",
+        "3",
+        "6/32",
+        "32/6"
+      ],
+      "correct_answer": "3",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "target_node": "Dividing_fractions",
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "1/3": "inverts_wrong_fraction (inverts the dividend: 8/6 × 1/4 = 8/24 = 1/3)",
+        "6/32": "forgets_to_invert (6/8 × 1/4 = 6/32)",
+        "32/6": "inverts_both_fractions"
+      },
+      "rationale": "Sharing word problem requiring fraction division. The whole-number quotient encourages students to check their answer for plausibility (expects_quotient_to_be_smaller misconception is implicitly probed)."
+    },
+    {
+      "item_id": "PED_001",
+      "stem": "Compute 1/2 × 2/3 ÷ 1/4.",
+      "options": [
+        "1/3",
+        "1/12",
+        "3/4",
+        "4/3"
+      ],
+      "correct_answer": "4/3",
+      "q_vector": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "target_node": "PEDMAS",
+      "difficulty_hint": "hard",
+      "distractor_rationales": {
+        "1/3": "completed only the first step (1/2 × 2/3 = 1/3) and stopped — drops_operation_during_chaining",
+        "1/12": "treats_division_as_multiplication (1/2 × 2/3 × 1/4 = 2/24 = 1/12)",
+        "3/4": "miscounts somewhere or selects a familiar-looking fraction"
+      },
+      "rationale": "Three-operation chain with left-to-right ÷ and ×. The dominant misconceptions both produce specific named distractors."
+    },
+    {
+      "item_id": "PED_002",
+      "stem": "Compute (2/3 × 3/4) ÷ 1/2.",
+      "options": [
+        "1",
+        "1/4",
+        "1/2",
+        "1/8"
+      ],
+      "correct_answer": "1",
+      "q_vector": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+      ],
+      "target_node": "PEDMAS",
+      "difficulty_hint": "hard",
+      "distractor_rationales": {
+        "1/4": "treats_division_as_multiplication (2/3 × 3/4 × 1/2 = 6/24 = 1/4)",
+        "1/2": "computed (2/3 × 3/4) = 1/2 correctly then stopped — drops_operation_during_chaining",
+        "1/8": "miscalculation during ÷ step"
+      },
+      "rationale": "Tests bracket-respect plus invert-and-multiply. Distractor 1/4 is the dominant 'treats ÷ as ×' error."
+    }
+  ],
+  "multi_skill_items": [
+    {
+      "item_id": "MULTI_001",
+      "stem": "Compute 1¾ × 2/3.",
+      "options": [
+        "2/3",
+        "7/6",
+        "5/7",
+        "21/12"
+      ],
+      "correct_answer": "7/6",
+      "q_vector": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0
+      ],
+      "target_nodes": [
+        "Mixed_to_improper",
+        "Multiplying_fractions"
+      ],
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "2/3": "ignores the whole part (multiplies only the fractional part by 2/3)",
+        "5/7": "adds_numerators_and_denominators across an incorrectly converted mixed number",
+        "21/12": "conversion or multiplication slip (computes 7×3 / 4×3 retaining the conversion factor)"
+      },
+      "rationale": "Requires converting 1¾ to 7/4 and then multiplying. Tests whether the student can chain two procedures cleanly; the dominant failure is to skip the conversion step."
+    },
+    {
+      "item_id": "MULTI_002",
+      "stem": "Esi wrote 12/18 on her exercise book. Express this as a fraction with denominator 3.",
+      "options": [
+        "1/3",
+        "2/3",
+        "4/3",
+        "6/3"
+      ],
+      "correct_answer": "2/3",
+      "q_vector": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "target_nodes": [
+        "Equivalent_fractions",
+        "Simplifying_fractions"
+      ],
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "1/3": "reduces_only_numerator (divides only the top)",
+        "4/3": "stops_at_first_common_factor (divides by 3 only, gets 4/6, then misrepresents)",
+        "6/3": "reduces_only_denominator (divides only the bottom by 6)"
+      },
+      "rationale": "Combines simplification with the equivalence concept — the student must recognise that simplifying 12/18 to lowest terms produces the requested denominator. Probes both nodes simultaneously."
+    },
+    {
+      "item_id": "MULTI_003",
+      "stem": "Compute 4/6 × 3/8 and give your answer in lowest terms.",
+      "options": [
+        "1/4",
+        "1/3",
+        "7/14",
+        "12/48"
+      ],
+      "correct_answer": "1/4",
+      "q_vector": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "target_nodes": [
+        "Multiplying_fractions",
+        "Simplifying_fractions"
+      ],
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "1/3": "simplification mismatch (divides by wrong common factor or stops early)",
+        "7/14": "adds_numerators_and_denominators (4+3 = 7, 6+8 = 14, then simplifies)",
+        "12/48": "correct multiplication but did not simplify"
+      },
+      "rationale": "Multiplies first, then simplifies. The distractor 12/48 specifically probes students who got the multiplication right but stopped before simplifying — useful for separating those two skills in the diagnostic."
+    },
+    {
+      "item_id": "MULTI_004",
+      "stem": "Compute 1½ × 2/3 ÷ 1/4.",
+      "options": [
+        "1/4",
+        "1",
+        "4",
+        "3/8"
+      ],
+      "correct_answer": "4",
+      "q_vector": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1
+      ],
+      "target_nodes": [
+        "Mixed_to_improper",
+        "Multiplying_fractions",
+        "Dividing_fractions",
+        "PEDMAS"
+      ],
+      "difficulty_hint": "hard",
+      "distractor_rationales": {
+        "1/4": "treats_division_as_multiplication (3/2 × 2/3 × 1/4 = 1/4)",
+        "1": "completed 3/2 × 2/3 = 1 and stopped (drops_operation_during_chaining)",
+        "3/8": "skipped the conversion step (1 × 2/3 ÷ 1/4 = 8/3 → mis-simplified)"
+      },
+      "rationale": "Heaviest multi-skill item. Requires converting 1½, applying PEDMAS order, multiplying, then dividing by inversion. Misclassification here points to which of the four sub-skills failed; the distractor profile is informative."
+    },
+    {
+      "item_id": "MULTI_005",
+      "stem": "Compute 1½ × 2½ and write the answer as a mixed number.",
+      "options": [
+        "2½",
+        "3¾",
+        "5/4",
+        "15/4"
+      ],
+      "correct_answer": "3¾",
+      "q_vector": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "target_nodes": [
+        "Mixed_to_improper",
+        "Improper_to_mixed",
+        "Multiplying_fractions"
+      ],
+      "difficulty_hint": "medium",
+      "distractor_rationales": {
+        "2½": "multiplies whole parts only (1×2 = 2) and arbitrarily places the half",
+        "5/4": "ignores one of the mixed numbers entirely",
+        "15/4": "correct multiplication but did not convert back to mixed number form"
+      },
+      "rationale": "Round-trip through both conversion nodes plus multiplication. Distractor 15/4 specifically separates students who can do the multiplication but cannot convert back."
+    },
+    {
+      "item_id": "MULTI_006",
+      "stem": "Compute 2½ ÷ 1¼ × 2/3.",
+      "options": [
+        "1/3",
+        "2",
+        "4/3",
+        "25/12"
+      ],
+      "correct_answer": "4/3",
+      "q_vector": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1
+      ],
+      "target_nodes": [
+        "Mixed_to_improper",
+        "Multiplying_fractions",
+        "Dividing_fractions",
+        "PEDMAS"
+      ],
+      "difficulty_hint": "hard",
+      "distractor_rationales": {
+        "1/3": "computed 5/2 ÷ 5/4 = 2 then misapplied the next step, or other compounded error",
+        "2": "completed 5/2 ÷ 5/4 = 2 and stopped (drops_operation_during_chaining)",
+        "25/12": "treats_division_as_multiplication (5/2 × 5/4 × 2/3 = 50/24)"
+      },
+      "rationale": "Mirror of MULTI_004 with division coming first. Probes whether the student handles left-to-right precedence within the ×/÷ tier correctly, alongside the two conversion-then-operate sub-procedures."
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "subject": "Fractions",
+  "curriculum_context": "Ghanaian upper primary (B.S. 4-6), generated against a 10-node skill graph.",
+  "cultural_context": "Ghanaian upper-primary / junior-high context. Use Ghana cedis (GH₵), Ghanaian names (Kofi, Ama, Akua, Kwame, Yaa, Esi), local foods (jollof, kelewele, plantain, watermelon), and market settings. Use slash notation (a/b) for fractions and unicode vulgar fractions (½, ⅓, ⅔, ¼, ¾) for mixed numbers.",
+  "node_order": [
+    "Multiplication",
+    "Division",
+    "Concept_of_fraction",
+    "Equivalent_fractions",
+    "Simplifying_fractions",
+    "Mixed_to_improper",
+    "Improper_to_mixed",
+    "Multiplying_fractions",
+    "Dividing_fractions",
+    "PEDMAS"
+  ],
+  "prerequisites": {
+    "Multiplication": [],
+    "Division": [],
+    "Concept_of_fraction": [],
+    "Mixed_to_improper": [
+      "Multiplication",
+      "Concept_of_fraction"
+    ],
+    "Improper_to_mixed": [
+      "Division",
+      "Concept_of_fraction"
+    ],
+    "Equivalent_fractions": [
+      "Multiplication",
+      "Concept_of_fraction"
+    ],
+    "Simplifying_fractions": [
+      "Equivalent_fractions"
+    ],
+    "Multiplying_fractions": [
+      "Multiplication",
+      "Simplifying_fractions"
+    ],
+    "Dividing_fractions": [
+      "Division",
+      "Simplifying_fractions",
+      "Multiplying_fractions"
+    ],
+    "PEDMAS": [
+      "Multiplying_fractions",
+      "Dividing_fractions"
+    ]
+  },
+  "short_labels": {
+    "Multiplication": "Mult",
+    "Division": "Div",
+    "Concept_of_fraction": "Concept",
+    "Equivalent_fractions": "Equiv",
+    "Simplifying_fractions": "Simp",
+    "Mixed_to_improper": "M→I",
+    "Improper_to_mixed": "I→M",
+    "Multiplying_fractions": "×Fr",
+    "Dividing_fractions": "÷Fr",
+    "PEDMAS": "PED"
+  },
+  "skill_descriptions": {
+    "Multiplication": "Multiplying whole numbers up to 12x12.",
+    "Division": "Dividing whole numbers with no remainder, up to 100/10.",
+    "Concept_of_fraction": "Understanding a fraction a/b as a parts out of b equal parts of a whole.",
+    "Equivalent_fractions": "Generating equivalent fractions by multiplying numerator and denominator by the same nonzero number.",
+    "Simplifying_fractions": "Reducing a fraction to its simplest form by dividing numerator and denominator by their greatest common divisor.",
+    "Mixed_to_improper": "Converting a mixed number (whole + fraction) to an improper fraction.",
+    "Improper_to_mixed": "Converting an improper fraction to a mixed number using division with remainder.",
+    "Multiplying_fractions": "Multiplying two fractions by multiplying numerators and denominators, then simplifying.",
+    "Dividing_fractions": "Dividing two fractions using multiply-by-the-reciprocal.",
+    "PEDMAS": "Applying order of operations (parentheses, exponents, multiplication, division) on chained fraction expressions."
+  },
+  "design_notes": [
+    "Items deliberately avoid relying on addition or subtraction of fractions since those nodes are absent from the user's DAG. A production version should add 'Add/subtract fractions' and 'Common denominator' nodes before generating PEDMAS items that mix +/- with x/÷.",
+    "All items are multiple-choice for paper administration and machine-checkable scoring. Distractors are aligned to named misconceptions from the misconceptions section where possible.",
+    "Currency uses Ghana Cedis (GH₵). Names and contexts use Ghanaian referents (Kofi, Ama, Akua, Kwame, Yaa, Esi; kelewele, jollof, plantain, watermelon, market settings).",
+    "Vulgar-fraction unicode characters (½, ⅓, ⅔, ¼, ¾, ⅕, ⅖, ⅗, ⅘) are used for mixed numbers; slash notation (a/b) for general fractions.",
+    "Each item has a distractor_rationales field giving the misconception each wrong option targets, useful both for review and for downstream misconception-level diagnosis beyond skill mastery."
+  ]
+}
