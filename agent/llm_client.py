@@ -92,12 +92,20 @@ class OllamaClient:
         host: str = DEFAULT_HOST,
         options: dict | None = None,
         thinking: bool = True,
+        record_path=None,
     ):
         self.model = model
         self.host = host
         self.client = ollama.Client(host=host)
         self.options = {**DEFAULT_OPTIONS, **(options or {})}
         self.thinking = thinking
+        self.recorder = None
+        if record_path:
+            from assessment.provenance import Recorder
+            self.recorder = Recorder(record_path)
+
+    def _chat(self, **kwargs):
+        return self.recorder.chat(self.client, kwargs) if self.recorder else self.client.chat(**kwargs)
 
     # --- internal helpers ---
 
@@ -144,7 +152,7 @@ class OllamaClient:
     ) -> str:
         """Single-turn completion, returns raw text (thinking stripped)."""
         merged_options = {**self.options, **(options or {})}
-        response = self.client.chat(
+        response = self._chat(
             model=self.model,
             messages=self._messages(prompt, system),
             options=merged_options,
@@ -167,7 +175,7 @@ class OllamaClient:
         merged_options = {**self.options, **(options or {})}
         last_err: Exception | None = None
         for attempt in range(max_retries + 1):
-            response = self.client.chat(
+            response = self._chat(
                 model=self.model,
                 messages=self._messages(prompt, system),
                 options=merged_options,
@@ -241,7 +249,7 @@ class OllamaClient:
         agent_options = {**self.options, "temperature": tool_temperature}
 
         for iteration in range(1, max_iterations + 1):
-            response = self.client.chat(
+            response = self._chat(
                 model=self.model,
                 messages=messages,
                 tools=tool_schemas,

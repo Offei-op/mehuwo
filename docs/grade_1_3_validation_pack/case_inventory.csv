@@ -1,0 +1,7 @@
+case_id,grade,split,subject,curriculum_authority,country,language,edition,source_url,document_sha256,physical_pages,unit_title,reference_expert,status
+G1-DEV-01,1,development,Mathematics,,,,,,,,,,awaiting curriculum selection
+G1-EVAL-01,1,evaluation,Mathematics,,,,,,,,,,awaiting curriculum selection
+G2-DEV-01,2,development,Mathematics,,,,,,,,,,awaiting curriculum selection
+G2-EVAL-01,2,evaluation,Mathematics,,,,,,,,,,awaiting curriculum selection
+G3-DEV-01,3,development,Mathematics,,,,,,,,,,awaiting curriculum selection
+G3-EVAL-01,3,evaluation,Mathematics,,,,,,,,,,awaiting curriculum selection

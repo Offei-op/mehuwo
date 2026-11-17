@@ -146,7 +146,7 @@ def cluster_students(
     X = skill_mat[scored]
     n_scored = X.shape[0]
 
-    if n_scored < k:
+    if k < 1 or n_scored < max(k, 2):
         raise ValueError(
             f"only {n_scored} scored students but k={k}; reduce k or score more sheets"
         )
@@ -172,7 +172,8 @@ def cluster_students(
     # --- Build per-cluster summary ---
     summary_rows = []
     depths = compute_depths(prereqs, skills) if prereqs else {s: 0 for s in skills}
-    for c in range(k):
+    probabilistic = "diagnostic_method" in out and out["diagnostic_method"].eq("dina").all()
+    for c in sorted(np.unique(final_labels)):
         members = out[out["cluster"] == c]
         centroid = members[skills].mean()
         deficits = centroid[centroid < partial_threshold].sort_values()
@@ -186,6 +187,13 @@ def cluster_students(
         }
         for s in skills:
             row[f"centroid_{s}"] = float(centroid[s])
+            if probabilistic:
+                row[f"uncertain_{s}"] = int(members[f"status_{s}"].eq("uncertain").sum())
+                row[f"likely_not_mastered_{s}"] = int(members[f"status_{s}"].eq("likely_not_mastered").sum())
+        if probabilistic:
+            row["diagnostic_method"] = "dina"
+            if row["label"] == "all-mastered":
+                row["label"] = "no-clear-group-gap"
         summary_rows.append(row)
     summary = pd.DataFrame(summary_rows)
 
@@ -273,8 +281,8 @@ def _write_debug_plots(
     M = summary[cent_cols].to_numpy()                       # (k, K)
     fig, ax = plt.subplots(figsize=(max(6, len(skills) * 0.7), 0.8 * k + 1.6))
     im = ax.imshow(M, aspect="auto", cmap="RdYlGn", vmin=0, vmax=1)
-    ax.set_yticks(range(k))
-    ax.set_yticklabels([f"c{c} ({summary['label'][c]})" for c in range(k)])
+    ax.set_yticks(range(len(summary)))
+    ax.set_yticklabels([f"c{c} ({summary['label'][c]})" for c in range(len(summary))])
     ax.set_xticks(range(len(skills)))
     ax.set_xticklabels(skills, rotation=45, ha="right", fontsize=9)
     for i in range(M.shape[0]):

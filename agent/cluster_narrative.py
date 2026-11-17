@@ -47,9 +47,11 @@ class StudentNarrative(BaseModel):
 # ---- prompt construction --------------------------------------------------
 
 SYSTEM_PROMPT = """You are a math-education researcher writing diagnostic summaries
-for a Ghanaian classroom. Be specific, concrete, and brief. Refer to skills by
+for classroom teachers. Be specific, concrete, and brief. Refer to skills by
 their exact names. Do not invent skills not in the provided list. Do not include
 generic teaching advice; ground every observation in the mastery data."""
+
+SYSTEM_PROMPT += " For DINA results, probabilities are conditional on assumed parameters, not percent correct. Do not call uncertain skills partially mastered. Group averages do not diagnose every member. Recommend further assessment when evidence is uncertain."
 
 
 def _cluster_prompt(row: pd.Series, skills: list[str], subject: str,
@@ -58,6 +60,13 @@ def _cluster_prompt(row: pd.Series, skills: list[str], subject: str,
     for s in skills:
         v = row.get(f"centroid_{s}")
         if pd.notna(v):
+            if row.get("diagnostic_method") == "dina":
+                centroid_lines.append(
+                    f"  {s}: mean mastery probability {v:.2f}; "
+                    f"uncertain students={row.get(f'uncertain_{s}', 0)}, "
+                    f"likely not mastered={row.get(f'likely_not_mastered_{s}', 0)}"
+                )
+                continue
             band = "mastered" if v >= 1.0 else "partial" if v >= 0.5 else "not mastered"
             centroid_lines.append(f"  {s}: {v:.2f} ({band})")
 
@@ -70,7 +79,7 @@ def _cluster_prompt(row: pd.Series, skills: list[str], subject: str,
         f"Subject: {subject}\n"
         f"Cluster: {row['cluster']}  size: {row['size']} students  "
         f"mean mastery: {row['mean_mastery']:.2f}  label: {row['label']}\n\n"
-        f"Per-skill mastery (0=not, 0.5=partial, 1=mastered):\n"
+        f"Per-skill estimates (method: {row.get('diagnostic_method', 'simple')}):\n"
         + "\n".join(centroid_lines)
         + "\n\nSkill prerequisites:\n"
         + ("\n".join(prereq_lines) if prereq_lines else "  (none specified)")
@@ -85,6 +94,9 @@ def _student_prompt(row: pd.Series, skills: list[str], subject: str) -> str:
     for s in skills:
         v = row.get(s)
         if pd.notna(v):
+            if row.get("diagnostic_method") == "dina":
+                mastery_lines.append(f"  {s}: probability={v:.2f}, status={row.get(f'status_{s}')}")
+                continue
             band = "mastered" if v >= 1.0 else "partial" if v >= 0.5 else "not mastered"
             mastery_lines.append(f"  {s}: {v:.2f} ({band})")
     return (

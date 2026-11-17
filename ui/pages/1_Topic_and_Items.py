@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+import uuid
 from pathlib import Path
 
 import streamlit as st
@@ -25,6 +26,7 @@ from lib.state import (
 from lib.runners import (
     run_bank_generator, run_validate_bank, ollama_reachable,
 )
+from lib.state import invalidate_after
 
 
 st.set_page_config(page_title="Topic & Items — mehuwo", page_icon="📐",
@@ -33,12 +35,18 @@ init_state()
 w = require_ws()
 
 
+def new_bank_path():
+    folder = w.root / "bank_versions" / str(uuid.uuid4())
+    folder.mkdir(parents=True)
+    return folder / "bank.json"
+
+
 header(
     "Topic & Items",
     eyebrow="step 1 of 5",
     description=(
-        "Set the skill graph for the unit you want to assess, then have "
-        "the LLM author a multiple-choice item bank against it. Every "
+        "Upload a curriculum, review and approve its proposed skill map, then "
+        "generate a multiple-choice question bank. Every "
         "item is verified arithmetically before it's accepted into the bank."
     ),
 )
@@ -52,87 +60,8 @@ tab_spec, tab_bank = st.tabs(["1 · Topic spec", "2 · Item bank"])
 # =========================================================================
 
 with tab_spec:
-    st.markdown(
-        '<div class="eyebrow">topic specification</div>'
-        '<h3 style="margin-top:0">Choose or upload a topic spec</h3>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<p class="lead">A topic spec is a small JSON file that lists the '
-        "skills in the unit, their prerequisite edges, and the cultural "
-        "context the LLM should use when writing items.</p>",
-        unsafe_allow_html=True,
-    )
-
-    cur = w.topic_spec
-    if cur:
-        st.markdown(
-            f'<span class="pill done">current spec</span> '
-            f'<span class="kbd">{Path(cur).name}</span>',
-            unsafe_allow_html=True,
-        )
-
-    col_a, col_b = st.columns([1, 1], gap="large")
-
-    with col_a:
-        st.markdown("**Use the bundled Fractions spec**")
-        st.caption(
-            "10-skill Fractions unit (B.S. 4–6 / JHS) with Ghanaian "
-            "cultural context already configured."
-        )
-        if st.button("Use bundled spec", use_container_width=True,
-                     disabled=not BUNDLED["topic_spec"].exists()):
-            dest = w.root / "topic_spec.json"
-            dest.write_text(BUNDLED["topic_spec"].read_text())
-            w.topic_spec = dest
-            save_ws()
-            st.success(f"Loaded {dest.name}")
-            st.rerun()
-
-    with col_b:
-        st.markdown("**Upload your own**")
-        st.caption("JSON file following the same schema as the bundled spec.")
-        uploaded = st.file_uploader(
-            "Topic spec JSON", type=["json"], label_visibility="collapsed",
-        )
-        if uploaded is not None:
-            dest = w.root / "topic_spec.json"
-            dest.write_bytes(uploaded.getvalue())
-            w.topic_spec = dest
-            save_ws()
-            st.success(f"Saved as {dest.name}")
-            st.rerun()
-
-    # Preview / inline edit ------------------------------------------------
-    if w.topic_spec and Path(w.topic_spec).exists():
-        st.markdown("<hr class='section-rule'>", unsafe_allow_html=True)
-        st.markdown(
-            '<div class="eyebrow">preview</div>'
-            '<h3 style="margin-top:0">Current topic spec</h3>',
-            unsafe_allow_html=True,
-        )
-        spec = json.loads(Path(w.topic_spec).read_text())
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Subject", spec.get("subject", "—"))
-        col2.metric("Skills", len(spec.get("node_order", [])))
-        col3.metric(
-            "Prerequisite edges",
-            sum(len(v) for v in spec.get("prerequisites", {}).values()),
-        )
-
-        with st.expander("Skill graph (textual)", expanded=False):
-            for s in spec.get("node_order", []):
-                desc = spec.get("skill_descriptions", {}).get(s, "")
-                parents = spec.get("prerequisites", {}).get(s, [])
-                p_str = f"  ← {', '.join(parents)}" if parents else ""
-                st.markdown(f"- **{s}**{p_str}  \n  <span class='muted' "
-                            f"style='font-size:0.85rem'>{desc}</span>",
-                            unsafe_allow_html=True)
-
-        with st.expander("Raw JSON", expanded=False):
-            st.code(json.dumps(spec, indent=2, ensure_ascii=False),
-                    language="json")
+    from lib.curriculum import render_topic_workflow
+    render_topic_workflow(w)
 
 
 # =========================================================================
@@ -166,6 +95,9 @@ with tab_bank:
         except Exception:
             pass
 
+    if w.bank:
+        st.page_link("pages/6_Expert_Review.py", label="Review answers, skill assignments, and prerequisites")
+
     # Three ways to get a bank: generate, upload, use bundled --------------
     method = st.radio(
         "How would you like to get an item bank?",
@@ -181,8 +113,9 @@ with tab_bank:
         )
         if st.button("Use bundled bank", type="primary",
                      disabled=not BUNDLED["bank"].exists()):
-            dest = w.root / "bank.json"
+            dest = new_bank_path()
             dest.write_text(BUNDLED["bank"].read_text())
+            invalidate_after(w, "bank")
             w.bank = dest
             save_ws()
             st.success(f"Loaded {dest.name}")
@@ -191,9 +124,10 @@ with tab_bank:
     # --- Upload ------------------------------------------------------
     elif method == "Upload my own":
         uploaded = st.file_uploader("Bank JSON", type=["json"])
-        if uploaded is not None:
-            dest = w.root / "bank.json"
+        if uploaded is not None and st.button("Load uploaded bank"):
+            dest = new_bank_path()
             dest.write_bytes(uploaded.getvalue())
+            invalidate_after(w, "bank")
             w.bank = dest
             save_ws()
             st.success(f"Saved as {dest.name}")
@@ -214,6 +148,13 @@ with tab_bank:
             "</div></div>",
             unsafe_allow_html=True,
         )
+
+        from assessment.curriculum_maps import require_approved
+        try:
+            require_approved(w.root, json.loads(Path(w.topic_spec).read_text(encoding="utf-8")))
+        except ValueError as exc:
+            st.warning(f"Review and approve the current topic map before generating questions. {exc}")
+            st.stop()
 
         # Quick Ollama health check
         ok, detail = ollama_reachable(st.session_state["ollama_host"])
@@ -255,62 +196,13 @@ with tab_bank:
                         "force off": False}[thinking]
 
         if st.button("Generate bank", type="primary"):
-            dest = w.root / "bank.json"
-            log_area = st.empty()
-            progress = st.empty()
-            status = st.empty()
-            lines: list[str] = []
-            tools_seen = {"add_ok": 0, "add_fail": 0,
-                          "coverage": 0, "verify": 0}
-
-            status.info("Starting agent loop…")
-            t0 = time.time()
-            for stream, line in run_bank_generator(
-                spec=Path(w.topic_spec),
-                output=dest,
-                target_per_skill=int(target_per_skill),
-                target_multi=int(target_multi),
-                max_iterations=int(max_iters),
-                model=model.strip() or None,
-                host=st.session_state["ollama_host"],
-                thinking=thinking_arg,
-            ):
-                if stream == "exit":
-                    rc = int(line)
-                    elapsed = time.time() - t0
-                    if rc == 0:
-                        status.success(
-                            f"Bank written to `{dest}` in {elapsed:.0f}s."
-                        )
-                    else:
-                        status.error(
-                            f"Generator exited with code {rc} after "
-                            f"{elapsed:.0f}s. See log."
-                        )
-                    break
-
-                # Surface the per-item progress lines from on_call
-                if line.startswith("  + "):
-                    tools_seen["add_ok"] += 1
-                elif "add_item failed" in line:
-                    tools_seen["add_fail"] += 1
-
-                lines.append(line)
-                # Keep the log readable
-                tail = lines[-40:]
-                log_area.code("\n".join(tail), language="text")
-                progress.markdown(
-                    f"<div class='muted' style='font-size:0.85rem'>"
-                    f"items committed: <b>{tools_seen['add_ok']}</b> · "
-                    f"verifier rejects: <b>{tools_seen['add_fail']}</b>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-
-            if dest.exists():
-                w.bank = dest
-                save_ws()
-                st.rerun()
+            from lib.jobs import queue
+            queue(w, "bank", {
+                "model": model.strip() or st.session_state["ollama_model"],
+                "host": st.session_state["ollama_host"], "thinking": thinking_arg,
+                "target_per_skill": int(target_per_skill), "target_multi": int(target_multi),
+                "max_iterations": int(max_iters),
+            }, {"spec": w.topic_spec})
 
     # --- Validate ----------------------------------------------------
     if w.bank and Path(w.bank).exists():

@@ -44,7 +44,7 @@ with st.sidebar:
         "mehuwo</div>"
         "<div class='muted' style='font-size:0.78rem;line-height:1.45;"
         "margin-bottom:1rem'>Adaptive math diagnostics<br>"
-        "for Ghanaian classrooms.</div>",
+        "for paper-based classrooms.</div>",
         unsafe_allow_html=True,
     )
 
@@ -117,18 +117,21 @@ if w is None:
             '<div class="card"><h4>Start a new diagnostic</h4>'
             '<div class="muted" style="font-size:0.88rem;'
             'margin-bottom:0.8rem">For a real class. Pick a short name '
-            '(e.g. <span class="kbd">jhs2a-2026-term1</span>); we\'ll keep '
+            '(e.g. <span class="kbd">class-a-2026-term1</span>); we\'ll keep '
             'every file for this run inside one folder.</div></div>',
             unsafe_allow_html=True,
         )
         new_name = st.text_input(
-            "Workspace name", placeholder="jhs2a-2026-term1",
+            "Workspace name", placeholder="class-a-2026-term1",
             label_visibility="collapsed",
         )
         if st.button("Create workspace", type="primary",
                      use_container_width=True, disabled=not new_name.strip()):
-            create_workspace(new_name.strip())
-            st.rerun()
+            try:
+                create_workspace(new_name.strip())
+                st.rerun()
+            except (ValueError, RuntimeError) as exc:
+                st.error(str(exc))
 
     # --- Existing workspaces -----------------------------------------
     with col_b:

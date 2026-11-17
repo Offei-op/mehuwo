@@ -223,27 +223,17 @@ with tab_narr:
 
     if st.button("Write cluster narratives", type="primary",
                  disabled=not ok):
-        out = w.root / "cluster_summary_with_narratives.xlsx"
-        success = _run_with_log(
-            run_cluster_narrative(
-                cluster_summary=Path(w.cluster_summary_xlsx),
-                bank=Path(w.bank),
-                output=out,
-                model=model.strip() or None,
-                host=st.session_state["ollama_host"],
-                mastery_clustered=Path(w.mastery_clustered_xlsx)
-                                  if also_students else None,
-                student_output=student_output_path,
-                only_clusters=only_clusters,
-            ),
-            "Writing narratives…",
-            "Narratives written.",
-        )
-        if success and out.exists():
-            w.cluster_summary_narratives_xlsx = out
-            save_ws()
-            time.sleep(0.4)
-            st.rerun()
+        from lib.jobs import queue
+        try:
+            clusters = [int(c.strip()) for c in only_clusters.split(",")] if only_clusters else None
+            queue(w, "narratives", {
+                "model": model.strip() or st.session_state["ollama_model"],
+                "host": st.session_state["ollama_host"], "also_students": also_students,
+                "only_clusters": clusters,
+            }, {"summary": w.cluster_summary_xlsx, "bank": w.bank,
+                **({"mastery": w.mastery_clustered_xlsx} if also_students else {})})
+        except ValueError:
+            st.error("Enter cluster numbers separated by commas.")
 
     # Preview ----------------------------------------------------------
     if w.cluster_summary_narratives_xlsx and \
@@ -308,8 +298,8 @@ with tab_content:
         try:
             pack = json.loads(Path(w.remediation_pack_json).read_text())
             n_clusters = len(pack.get("clusters", []))
-            n_steps = sum(len(c.get("steps", []))
-                          for c in pack.get("clusters", []))
+            n_steps = sum(len(c.get("path", []))
+                          for c in pack.get("clusters", {}).values())
             st.markdown(
                 f'<span class="pill done">pack ready</span> '
                 f'<span class="kbd">'
@@ -327,11 +317,7 @@ with tab_content:
             key="content_model",
         )
     with c2:
-        resume = st.checkbox(
-            "Resume from existing pack", value=True,
-            help="Skip steps already present in the output JSON. "
-                 "Always safe to leave on.",
-        )
+        st.caption("Use Retry in Jobs & History to resume a compatible saved checkpoint.")
 
     st.warning(
         "This is the longest step in the pipeline. Expect 30–90 minutes "
@@ -340,26 +326,12 @@ with tab_content:
 
     if st.button("Author remediation content", type="primary",
                  disabled=not ok):
-        out = w.root / "remediation_pack.json"
-        success = _run_with_log(
-            run_remediation_content(
-                cluster_paths=Path(w.cluster_paths_xlsx),
-                cluster_summary=Path(w.cluster_summary_xlsx),
-                mastery_clustered=Path(w.mastery_clustered_xlsx),
-                bank=Path(w.bank),
-                output=out,
-                resume=resume,
-                model=model.strip() or None,
-                host=st.session_state["ollama_host"],
-            ),
-            "Writing remediation packs…",
-            "Remediation content authored.",
-        )
-        if success and out.exists():
-            w.remediation_pack_json = out
-            save_ws()
-            time.sleep(0.4)
-            st.rerun()
+        from lib.jobs import queue
+        queue(w, "remediation", {
+            "model": model.strip() or st.session_state["ollama_model"],
+            "host": st.session_state["ollama_host"],
+        }, {"paths": w.cluster_paths_xlsx, "summary": w.cluster_summary_xlsx,
+            "mastery": w.mastery_clustered_xlsx, "bank": w.bank})
 
     # Preview ----------------------------------------------------------
     if w.remediation_pack_json and Path(w.remediation_pack_json).exists():
@@ -377,11 +349,16 @@ with tab_content:
             )
             cluster_idx = st.selectbox(
                 "Cluster",
-                options=range(len(pack["clusters"])),
+                options=sorted(pack["clusters"], key=int),
                 format_func=lambda i: f"Cluster {i}",
             )
             cluster = pack["clusters"][cluster_idx]
-            steps = cluster.get("steps", [])
+            if cluster.get("assessment_skills"):
+                st.info("Assess before assigning remediation: "
+                        + ", ".join(cluster["assessment_skills"]))
+            if cluster.get("note"):
+                st.info(cluster["note"])
+            steps = cluster.get("path", [])
             if steps:
                 step_idx = st.selectbox(
                     "Step",
@@ -389,7 +366,7 @@ with tab_content:
                     format_func=lambda i: (
                         f"{i+1}. {steps[i].get('skill', '—')}"),
                 )
-                _render_skill_pack(steps[step_idx])
+                _render_skill_pack({**steps[step_idx]["content"], "skill": steps[step_idx]["skill"]})
 
 
 # =========================================================================

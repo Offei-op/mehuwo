@@ -218,6 +218,7 @@ def generate_roster_pdf(
     quiz_id: str | None = None,
     cell_metadata_path: str | Path | None = None,
     students_per_page: int = 40,
+    form_manifest: dict | None = None,
 ) -> tuple[str, list[Cell]]:
     """Generate the master roster PDF.
 
@@ -229,9 +230,17 @@ def generate_roster_pdf(
         raise ValueError("students must be non-empty")
     if num_items < 1:
         raise ValueError("num_items must be >= 1")
+    if students_per_page < 1 or (len(students) + students_per_page - 1) // students_per_page > 12:
+        raise ValueError("Use 1-12 roster pages per form (ArUco marker limit).")
+    if form_manifest and len(form_manifest["items"]) != num_items:
+        raise ValueError("Roster columns must match the printed form.")
 
     if quiz_id is None:
         quiz_id = _make_quiz_id(students, num_items, quiz_title)
+        if form_manifest:
+            quiz_id = "q_" + hashlib.sha256((quiz_id + form_manifest["form_id"]).encode()).hexdigest()[:12]
+    if form_manifest:
+        quiz_title = f"{quiz_title} (form {form_manifest['form_id']})"
 
     out = Path(output_path)
     c = canvas.Canvas(str(out), pagesize=A4)
@@ -256,6 +265,7 @@ def generate_roster_pdf(
     if cell_metadata_path is not None:
         Path(cell_metadata_path).write_text(json.dumps({
             "quiz_id": quiz_id,
+            "form": form_manifest,
             "quiz_title": quiz_title,
             "class_label": class_label,
             "school_name": school_name,

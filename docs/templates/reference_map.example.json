@@ -1,0 +1,12 @@
+{
+  "subject": "Illustrative format only — replace with independently reviewed content",
+  "node_order": ["CountObjects", "CombineCollections"],
+  "skill_descriptions": {
+    "CountObjects": "Example: count a collection with one-to-one correspondence",
+    "CombineCollections": "Example: find the total of two collections"
+  },
+  "prerequisites": {
+    "CountObjects": [],
+    "CombineCollections": ["CountObjects"]
+  }
+}

@@ -470,6 +470,9 @@ def process_scans(
     with pd.ExcelWriter(out_path, engine="openpyxl") as xw:
         df.to_excel(xw, sheet_name="results", index=False)
         pd.DataFrame(meta_rows).to_excel(xw, sheet_name="scan_meta", index=False)
+        if cells_meta.get("form"):
+            pd.DataFrame([{"json": json.dumps(cells_meta["form"])}]).to_excel(
+                xw, sheet_name="form_manifest", index=False)
 
     print(f"\nwrote {out_path}")
     print(f"  scored {int(df['scored'].sum())}/{n_students} students  "

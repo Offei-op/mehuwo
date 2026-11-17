@@ -1,0 +1,13 @@
+[
+  {
+    "source_url": "https://assets.publishing.service.gov.uk/media/5a7da548ed915d2ac884cb07/PRIMARY_national_curriculum_-_Mathematics_220714.pdf",
+    "landing_page": "https://www.gov.uk/government/publications/national-curriculum-in-england-mathematics-programmes-of-study",
+    "authority": "Department for Education, England",
+    "language": "English",
+    "retrieved_at": "2026-11-16T21:21:22.026607+00:00",
+    "sha256": "cfae407ffaa5766bba0f00932f9a1f70a945ac03f955e3cddd761a63e826a1e4",
+    "pdf_pages": 47,
+    "readable_pages": 47,
+    "status": "Extraction smoke test only; no expert reference or model-quality result"
+  }
+]

@@ -14,7 +14,8 @@ Paths. Pages call `init_state()` at the top, then read from `ws()`.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+import sys
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
 
@@ -23,6 +24,8 @@ import streamlit as st
 
 # Repo root (one level up from ui/)
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 UI_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WORK_ROOT = REPO_ROOT / "data" / "runs"
 DEMO_WORK = REPO_ROOT / "data" / "_demo"
@@ -57,8 +60,11 @@ class Workspace:
     # Materials
     quiz_pdf: Path | None = None
     quiz_key_pdf: Path | None = None
+    quiz_manifest: Path | None = None
     roster_pdf: Path | None = None
     roster_cells: Path | None = None
+    scan_draft: Path | None = None
+    scan_context: Path | None = None
 
     # Results
     results_xlsx: Path | None = None
@@ -76,29 +82,31 @@ class Workspace:
     # Validation
     validation_report: dict | None = None
 
+    _revision: str | None = field(default=None, repr=False)
+
     def to_disk(self) -> None:
-        self.root.mkdir(parents=True, exist_ok=True)
+        from assessment.storage import save_manifest
         manifest = {k: (str(v) if isinstance(v, Path) else v)
-                    for k, v in asdict(self).items()}
-        (self.root / "workspace.json").write_text(
-            json.dumps(manifest, indent=2, default=str)
-        )
+                    for k, v in asdict(self).items() if not k.startswith("_")}
+        self._revision = save_manifest(self.root / "workspace.json", manifest, self._revision)
 
     @classmethod
     def from_disk(cls, root: Path) -> "Workspace":
-        manifest = json.loads((root / "workspace.json").read_text())
+        from assessment.storage import revision, file_lock
+        root = Path(root).resolve()
+        with file_lock(root / "workspace.lock"):
+            manifest = json.loads((root / "workspace.json").read_text(encoding="utf-8"))
+            stamp = revision(root / "workspace.json")
+        old_root = Path(manifest["root"])
         for k, v in manifest.items():
-            if k in {"name", "created_at", "validation_report"}:
+            if k in {"name", "created_at", "validation_report"} or k.startswith("_"):
                 continue
-            manifest[k] = Path(v) if v else None
-        return cls(
-            name=manifest["name"],
-            root=Path(manifest["root"]) if not isinstance(manifest["root"], Path)
-                  else manifest["root"],
-            created_at=manifest["created_at"],
-            **{k: v for k, v in manifest.items()
-               if k not in {"name", "root", "created_at"}},
-        )
+            if v:
+                path = Path(v)
+                manifest[k] = root / path.relative_to(old_root) if path.is_relative_to(old_root) else path
+        manifest["root"] = root
+        manifest["_revision"] = stamp
+        return cls(**manifest)
 
 
 # --- Initialisation -------------------------------------------------------
@@ -146,12 +154,30 @@ def save_ws() -> None:
         w.to_disk()
 
 
+def invalidate_after(w: Workspace, stage: str) -> None:
+    """Clear pointers, retaining the old files and audit history."""
+    chain = {
+        "bank": ["quiz_pdf", "quiz_key_pdf", "quiz_manifest"],
+        "quiz": ["roster_pdf", "roster_cells", "scan_draft", "scan_context", "results_xlsx"],
+        "results": ["mastery_xlsx"],
+        "mastery": ["mastery_clustered_xlsx", "cluster_summary_xlsx"],
+        "clusters": ["cluster_paths_xlsx", "cluster_summary_narratives_xlsx"],
+        "paths": ["remediation_pack_json", "cluster_report_pdf", "remediation_pack_pdf"],
+    }
+    order = list(chain)
+    for name in order[order.index(stage):]:
+        for attr in chain[name]:
+            setattr(w, attr, None)
+
+
 # --- Workspace lifecycle --------------------------------------------------
 
 def create_workspace(name: str, work_root: Path | None = None) -> Workspace:
     """Create a new workspace directory and select it."""
     work_root = work_root or st.session_state["work_root"]
     root = work_root / _slugify(name)
+    if (root / "workspace.json").exists():
+        raise ValueError("A workspace with this name already exists. Open it or choose a different name.")
     root.mkdir(parents=True, exist_ok=True)
     w = Workspace(
         name=name,
@@ -181,6 +207,8 @@ def list_workspaces(work_root: Path | None = None) -> list[Path]:
 def make_demo_workspace() -> Workspace:
     """Build a workspace that points at the repo's bundled artefacts so a
     teacher can click through the UI without running the LLM. Idempotent."""
+    if (DEMO_WORK / "workspace.json").exists():
+        return load_workspace(DEMO_WORK)
     DEMO_WORK.parent.mkdir(parents=True, exist_ok=True)
     w = Workspace(
         name="Demo (bundled fractions unit)",

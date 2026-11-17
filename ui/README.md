@@ -13,7 +13,7 @@ pip install streamlit matplotlib   # if not already installed
 streamlit run ui/app.py
 ```
 
-Open the printed URL (default `http://localhost:8501`). Sidebar nav exposes the five pipeline stages.
+Open the printed URL (default `http://localhost:8501`). Sidebar navigation includes five core pipeline stages plus Expert Review, Evaluation, and Follow-up assessment. See [the pilot workflow guide](../docs/pilot_workflows.md).
 
 If you intend to actually generate items or remediation content (anything LLM-driven), start Ollama in another shell first:
 
@@ -68,19 +68,19 @@ The **demo workspace** lives at `data/_demo/` and points at the bundled fraction
 
 `PYTHONPATH` includes `agent/` so the agent scripts' sibling imports work regardless of where the subprocess is launched from.
 
-### Honest about the OCR gap
+### Scan review and printed identities
 
-The OCR step (scanned roster sheet → `results.xlsx`) is not built yet. Page 3 has three tabs reflecting this: upload a manually-prepared file, generate synthetic results from the bank for demo purposes, or read the "not yet available" placeholder. The synthetic generator samples per-item correctness from three archetypes (struggling / developing / strong) with depth-profile-aware probabilities so the cluster structure downstream actually looks like something.
+Page 3 can import spreadsheets, generate synthetic examples, or recognize roster scans. Recognition produces a draft for teacher correction; approval saves canonical scoring results, the original scan output, and a correction audit. Quiz manifests map printed positions and options to stable item IDs, including shuffled forms. New rosters embed that manifest. Legacy unstamped files require an explicit question-order choice.
 
 ---
 
 ## Stage-by-stage flow
 
-**1. Topic & Items.** Load a topic spec (bundled or upload), then either load the bundled bank, upload one, or generate a new one. Generation streams the agent's tool-call log live and shows running counts of verifier-accepted vs verifier-rejected items. Validation runs the same `validate_bank.py` checks the CLI uses.
+**1. Topic & Items.** Upload a curriculum and review its AI-proposed skill map, or review a bundled/uploaded map. Only an explicitly approved version can be used for new LLM generation. See [curriculum maps](../docs/curriculum_maps.md). Load a topic spec (bundled or upload), then either load the bundled bank, upload one, or generate a new one. Generation streams the agent's tool-call log live and shows running counts of verifier-accepted vs verifier-rejected items. Validation runs the same `validate_bank.py` checks the CLI uses.
 
 **2. Materials.** Renders the quiz + key via `make_quiz_pdf.py`. Roster generation calls `recognition.score_sheet_template.generate_roster_pdf` directly (it doesn't have a CLI). Class size, names, school label, and quiz title are all editable.
 
-**3. Score & Mastery.** Get a `results.xlsx` into the workspace (three ways), then run the scoring layer. Class-wide mastery distribution + per-student mean histogram render on completion using the same palette as the PDF reports.
+**3. Score & Mastery.** Choose probabilistic DINA diagnosis or the original single-skill-average baseline. DINA reports uncertain skills and follow-up checks, with editable assumptions; see [diagnostics](../docs/diagnostics.md). Get a `results.xlsx` into the workspace (three ways), then run the scoring layer. Class-wide mastery distribution + per-student mean histogram render on completion using the same palette as the PDF reports.
 
 **4. Clusters & Path.** Hierarchical clustering with debug-plot output, per-cluster cards with the inferred labels (foundation-gap / middle-gap / leaf-gap / broad-gap / all-mastered) shown as pills, centroid heatmap + size bar inline. Then the remediation-layer step builds the topo-ordered path per cluster.
 
@@ -122,6 +122,13 @@ These are deliberate omissions for the v1 of this UI; obvious next things if you
 
 - **Authentication / multi-user.** Single-machine tool.
 - **A settings page** for the Ollama host, default model, and `work_root` location.
-- **OCR step.** Same gap as the rest of the project — the roster sheets already carry every fiducial and cell coordinate needed; just nobody's written the rectifier yet.
-- **Background job queue.** Long LLM runs block the Streamlit page they're started from. Workable for single-teacher use; would be the first thing to fix for a shared deployment.
-- **Tests.** `lib/` has no test coverage. The runners are thin enough that integration testing the actual CLI scripts (which the project should be doing anyway) gets you most of the way.
+- **Shared-server scheduling.** Local generation now uses durable background jobs with one active worker per workspace. A shared deployment still needs authentication and server-wide resource limits.
+- **Tests.** Run `python -m pytest` for offline model, workflow, recognition, and Streamlit integration checks. Classroom validation remains separate.
+
+## Jobs and records
+
+Map proposals, banks, narratives and remediation run in background processes. Open **Jobs & History** to inspect progress, cancel, retry, download records, or explicitly use a completed result. A curriculum proposal still needs human review. See [engineering records](../docs/engineering_records.md) for versions, backups and recovery.
+
+## Validation Studies
+
+Page 10 adds independently authored reference-map cases, expert alignment and evidence ratings, plus prospective classroom pilot protocols and separate-assessment evaluation. Topic & Items now includes scanned-PDF OCR/manual transcription review. See [validation setup](../docs/validation_studies.md).

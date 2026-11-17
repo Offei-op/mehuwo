@@ -19,12 +19,15 @@ single combined PDF (--pdf).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 from pydantic import BaseModel, Field
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from llm_client import OllamaClient
 from remediation_to_pdf import build_remediation_pdf
 
@@ -78,10 +81,10 @@ class SkillPack(BaseModel):
 
 # ---- prompt construction --------------------------------------------------
 
-SYSTEM_PROMPT = """You are an experienced Ghanaian Junior High mathematics teacher
-writing remediation materials. Use Ghana cedis (GH\u20b5), Ghanaian names (Kofi,
-Ama, Akua, Kwame, Yaa, Esi), and local contexts (market, jollof, kelewele,
-plantain) where appropriate. Be concrete, age-appropriate, and brief.
+SYSTEM_PROMPT = """You are an experienced mathematics teacher writing remediation
+materials. Follow the supplied curriculum and classroom context. When no regional
+context is specified, use broadly familiar classroom and everyday examples without
+assuming a country, currency, or school system. Be concrete, age-appropriate, and brief.
 
 For practice items, use realistic small numbers. Make distractors plausible -
 each wrong answer should correspond to a specific likely error. Return JSON
@@ -107,6 +110,8 @@ def _skill_pack_prompt(
     prereqs_for_skill: list[str],
     subject: str,
     skills_already_mastered: list[str],
+    curriculum_context: str = "",
+    cultural_context: str = "",
 ) -> str:
     prereq_text = (
         ", ".join(prereqs_for_skill) if prereqs_for_skill
@@ -118,16 +123,19 @@ def _skill_pack_prompt(
     )
     return (
         f"Subject: {subject}\n"
+        f"Curriculum context: {curriculum_context}\n"
+        f"Classroom context: {cultural_context}\n"
         f"Target skill: {skill}\n"
         f"Prerequisites the cluster's students should be ready with: {prereq_text}\n"
-        f"Skills the cluster has at least partial mastery of: {mastered_text}\n\n"
+        f"Skills supported as ready by the diagnostic policy: {mastered_text}\n\n"
         f"This remediation will be taught to {cluster_size} students in a cluster "
         f"labelled '{cluster_label}' (cluster mean mastery {cluster_centroid:.2f}, "
         f"their mastery on {skill} is {centroid_for_skill:.2f}).\n\n"
         f"Generate a teaching pack for {skill} containing: explanation, one worked "
         f"example, exactly 3 practice items (with options A/B/C/D, correct option, "
         f"and a hint), and 2-3 common mistakes. Tailor difficulty to a student "
-        f"who has the listed prerequisites but lacks {skill} itself."
+        f"who needs support with {skill}. Check prerequisite readiness before teaching; "
+        "group averages do not establish that every student has a skill."
     )
 
 
@@ -167,26 +175,38 @@ def generate_remediation_pack(
     out = Path(output_json)
     out.parent.mkdir(parents=True, exist_ok=True)
 
+    fingerprint = hashlib.sha256()
+    for source in (cluster_paths_xlsx, cluster_summary_xlsx,
+                   mastery_clustered_xlsx, item_bank_json):
+        payload = Path(source).read_bytes()
+        fingerprint.update(len(payload).to_bytes(8, "big"))
+        fingerprint.update(payload)
+    source_fingerprint = fingerprint.hexdigest()
+
     # Resume from a previous run if asked AND the file exists. Otherwise
     # start fresh. We use str cluster keys because JSON normalises them
     # anyway and round-tripping with int keys would silently break.
+    pack = None
     if resume and out.exists():
         pack = json.loads(out.read_text(encoding="utf-8"))
+        if pack.get("source_fingerprint") != source_fingerprint:
+            print("Inputs changed or provenance unavailable; rebuilding the teaching pack.")
+            pack = None
+    if pack is not None:
         if progress:
             done = sum(len(c.get("path", [])) for c in pack["clusters"].values())
             print(f"resume: loaded existing pack with {done} step(s) already done")
     else:
         pack = {
+            "source_fingerprint": source_fingerprint,
             "subject": subject,
             "bank_quiz_context": bank["meta"].get("curriculum_context", ""),
             "clusters": {},
         }
 
     def _save():
-        out.write_text(
-            json.dumps(pack, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
+        from assessment.storage import atomic_json
+        atomic_json(out, pack)
 
     cluster_ids = sorted(paths["cluster"].unique())
     for c in cluster_ids:
@@ -198,7 +218,7 @@ def generate_remediation_pack(
         if c_path.iloc[0]["skill"] == "(all mastered)":
             pack["clusters"][c_key] = {
                 "label": c_summary["label"], "n_students": int(c_summary["size"]),
-                "path": [], "note": "all skills mastered, no remediation needed",
+                "path": [], "note": "No remediation indicated by the current diagnostic policy.",
             }
             _save()
             continue
@@ -206,6 +226,8 @@ def generate_remediation_pack(
         # Skills the cluster has at least partial mastery of
         centroid = c_members[skills].mean()
         mastered = [s for s in skills if centroid[s] >= 0.5]
+        if "diagnostic_method" in c_members and c_members["diagnostic_method"].eq("dina").all():
+            mastered = [s for s in skills if c_members[f"status_{s}"].eq("likely_mastered").all()]
 
         # If resuming, reuse the partial record; else start fresh
         if c_key in pack["clusters"] and "path" in pack["clusters"][c_key]:
@@ -221,7 +243,18 @@ def generate_remediation_pack(
             pack["clusters"][c_key] = cluster_record
             done_steps = set()
 
+        cluster_record["assessment_skills"] = (
+            c_path.loc[c_path["action"] == "assess", "skill"].tolist()
+            if "action" in c_path else []
+        )
+        # A resumed pack must not retain a lesson for a now-uncertain skill.
+        cluster_record["path"] = [s for s in cluster_record["path"]
+                                  if s["skill"] not in cluster_record["assessment_skills"]]
+
         for _, step in c_path.iterrows():
+            if step.get("action") == "assess":
+                _save()
+                continue
             step_n = int(step["step"])
             skill = step["skill"]
             if step_n in done_steps:
@@ -242,6 +275,8 @@ def generate_remediation_pack(
                 prereqs_for_skill=prereqs.get(skill, []),
                 subject=subject,
                 skills_already_mastered=mastered,
+                curriculum_context=bank["meta"].get("curriculum_context", ""),
+                cultural_context=bank["meta"].get("cultural_context", ""),
             )
             result = client.generate_json(
                 prompt, schema=SkillPack, system=SYSTEM_PROMPT,
@@ -282,6 +317,9 @@ def _write_markdown(pack: dict, out_dir: Path) -> None:
             continue
 
         lines.append(f"_Mean mastery: {c['mean_mastery']:.2f}_  \n")
+        if c.get("assessment_skills"):
+            lines.append("**Assess before assigning remediation:** "
+                         + ", ".join(c["assessment_skills"]) + ".\n")
         for step in c["path"]:
             content = step["content"]
             lines.append(f"## Step {step['step']}: {step['skill']}")

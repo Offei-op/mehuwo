@@ -1,7 +1,7 @@
 {
   "meta": {
     "subject": "Fractions",
-    "curriculum_context": "Ghanaian upper primary (B.S. 4-6), generated against a 10-node skill graph.",
+    "curriculum_context": "Upper-primary / middle-school fractions, organised around a 10-node skill graph. Adapt to the learners and curriculum in your classroom.",
     "node_order": [
       "Multiplication",
       "Division",
@@ -18,7 +18,7 @@
     "design_notes": [
       "Items deliberately avoid relying on addition or subtraction of fractions since those nodes are absent from the user's DAG. A production version should add 'Add/subtract fractions' and 'Common denominator' nodes before generating PEDMAS items that mix +/- with x/÷.",
       "All items are multiple-choice for paper administration and machine-checkable scoring. Distractors are aligned to named misconceptions from the misconceptions section where possible.",
-      "Currency uses Ghana Cedis (GH₵). Names and contexts use Ghanaian referents (Kofi, Ama, Akua, Kwame, Yaa, Esi; kelewele, jollof, plantain, watermelon, market settings).",
+      "Follow the supplied classroom context for examples, units, and currency; when unspecified, use general everyday examples.",
       "Vulgar-fraction unicode characters (½, ⅓, ⅔, ¼, ¾, ⅕, ⅖, ⅗, ⅘) are used for mixed numbers; slash notation (a/b) for general fractions.",
       "Each item has a distractor_rationales field giving the misconception each wrong option targets, useful both for review and for downstream misconception-level diagnosis beyond skill mastery."
     ],
@@ -66,7 +66,8 @@
       "Multiplying_fractions": "×Fr",
       "Dividing_fractions": "÷Fr",
       "PEDMAS": "PED"
-    }
+    },
+    "cultural_context": "Use broadly familiar classroom and everyday examples, such as sharing food, measuring lengths, and arranging objects. Do not assume a particular country, currency, or school system. Use slash notation (a/b) for fractions and a space for mixed numbers (2 1/3)."
   },
   "misconceptions": {
     "Multiplication": [
@@ -448,7 +449,7 @@
     },
     {
       "item_id": "CONC_002",
-      "stem": "Two friends each cut a kelewele plate. Kofi cuts his into 4 equal pieces and shades 1. Ama cuts hers into 4 pieces of different sizes and shades 1. Whose shaded part is exactly 1/4 of the whole?",
+      "stem": "Two friends each cut a sheet of paper. Kofi cuts his into 4 equal pieces and shades 1. Ama cuts hers into 4 pieces of different sizes and shades 1. Whose shaded part is exactly 1/4 of the whole?",
       "options": [
         "Both",
         "Kofi only",
@@ -758,7 +759,7 @@
     },
     {
       "item_id": "MUF_002",
-      "stem": "Yaa has 3/4 kg of rice. She uses 2/5 of it to cook jollof. How much rice did she use, in kg?",
+      "stem": "Yaa has 3/4 kg of rice. She uses 2/5 of it to cook a meal. How much rice did she use, in kg?",
       "options": [
         "5/9",
         "5/20",

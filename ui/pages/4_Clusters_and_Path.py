@@ -99,6 +99,9 @@ with c3:
 
         w.mastery_clustered_xlsx = mc_path
         w.cluster_summary_xlsx = summary_path
+        for attr in ("cluster_paths_xlsx", "cluster_summary_narratives_xlsx",
+                     "remediation_pack_json", "remediation_pack_pdf", "cluster_report_pdf"):
+            setattr(w, attr, None)
         save_ws()
         st.success("Clustering complete.")
         st.code("\n".join(log[-20:]), language="text")
@@ -202,6 +205,10 @@ st.markdown(
 )
 
 c1, c2 = st.columns([1, 2])
+st.caption("For probabilistic diagnoses, paths use individual confidence statuses: "
+           "reteach when at least half the group is likely not mastered; otherwise "
+           "assess further unless every member is likely mastered. The threshold "
+           "below applies only to the simple scoring baseline.")
 with c1:
     partial_threshold = st.slider(
         "Mastery threshold", 0.0, 1.0, 0.5, 0.05,
@@ -227,6 +234,8 @@ with c2:
                 else:
                     log.append(line)
         w.cluster_paths_xlsx = path_out
+        for attr in ("remediation_pack_json", "remediation_pack_pdf"):
+            setattr(w, attr, None)
         save_ws()
         st.success("Remediation paths written.")
         time.sleep(0.3)
@@ -254,6 +263,9 @@ if w.cluster_paths_xlsx and Path(w.cluster_paths_xlsx).exists():
                 band = str(band_raw).strip() if pd.notna(band_raw) else ""
                 skill_raw = row.get("skill", "")
                 skill = str(skill_raw) if pd.notna(skill_raw) else ""
+                action = row.get("action", "reteach")
+                if action == "assess":
+                    skill += " (assess further)"
                 step_raw = row.get("step", 0)
                 step_n = int(step_raw) if pd.notna(step_raw) else 0
 

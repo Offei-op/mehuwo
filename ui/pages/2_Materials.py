@@ -17,7 +17,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from lib.state import init_state, require_ws, save_ws, header, REPO_ROOT
+from lib.state import init_state, require_ws, save_ws, header, REPO_ROOT, invalidate_after
 from lib.runners import run_make_quiz_pdf
 
 
@@ -52,6 +52,13 @@ if not w.bank or not Path(w.bank).exists():
 
 
 tab_quiz, tab_roster = st.tabs(["1 · Quiz PDF", "2 · Class roster"])
+
+from assessment.review import review_status
+reviewed_bank = json.loads(Path(w.bank).read_text(encoding="utf-8"))
+statuses = review_status(w.root, reviewed_bank)
+approved = sum(s["status"] == "approved" for s in statuses)
+st.caption(f"Expert review for this exact bank version: {approved}/{len(statuses)} targets approved.")
+st.page_link("pages/6_Expert_Review.py", label="Review this bank before classroom use")
 
 
 # =========================================================================
@@ -123,8 +130,11 @@ with tab_quiz:
                                min_value=0, max_value=99999, value=42)
 
     if st.button("Generate quiz and key", type="primary"):
-        quiz_path = w.root / "quiz.pdf"
-        key_path = w.root / "quiz_key.pdf"
+        import uuid
+        material_dir = w.root / "materials" / str(uuid.uuid4())
+        material_dir.mkdir(parents=True)
+        quiz_path = material_dir / "quiz.pdf"
+        key_path = material_dir / "quiz_key.pdf"
 
         with st.spinner("Rendering…"):
             log = []
@@ -146,8 +156,10 @@ with tab_quiz:
                 else:
                     log.append(line)
 
+        invalidate_after(w, "quiz")
         w.quiz_pdf = quiz_path
         w.quiz_key_pdf = key_path
+        w.quiz_manifest = quiz_path.with_suffix(".form.json")
         save_ws()
         st.success(f"Wrote {quiz_path.name} and {key_path.name}.")
         time.sleep(0.4)
@@ -215,11 +227,11 @@ with tab_roster:
     c1, c2 = st.columns(2)
     with c1:
         school_name = st.text_input("School name",
-                                    value="Sample Public JHS")
-        class_label = st.text_input("Class label", value="JHS 2A")
+                                    value="Sample School")
+        class_label = st.text_input("Class label", value="Class A")
     with c2:
         quiz_title = st.text_input(
-            "Quiz title", value="JHS 2 Mathematics — Fractions Quiz",
+            "Quiz title", value="Mathematics — Fractions Quiz",
         )
         students_per_page = st.number_input(
             "Students per A4 page",
@@ -241,8 +253,8 @@ with tab_roster:
     else:
         raw = st.text_area(
             "Student names (one per line)",
-            value="Kofi Mensah\nAma Boateng\nAkua Owusu\nKwame Asante\n"
-                  "Yaa Sarpong\nEsi Tetteh",
+            value="Student 001\nStudent 002\nStudent 003\nStudent 004\n"
+                  "Student 005\nStudent 006",
             height=180,
         )
         students = [s.strip() for s in raw.splitlines() if s.strip()]
@@ -256,8 +268,19 @@ with tab_roster:
             sys.path.insert(0, str(REPO_ROOT))
         from recognition.score_sheet_template import generate_roster_pdf
 
-        roster_path = w.root / "roster.pdf"
-        cells_path = w.root / "roster_cells.json"
+        from assessment.contracts import digest
+        if not w.quiz_manifest or not Path(w.quiz_manifest).exists():
+            st.error("Generate the quiz first so the roster can use its question mapping.")
+            st.stop()
+        form = json.loads(Path(w.quiz_manifest).read_text(encoding="utf-8"))
+        if form["bank_version"] != digest(json.loads(Path(w.bank).read_text(encoding="utf-8"))):
+            st.error("The bank changed. Generate a new quiz before its roster.")
+            st.stop()
+        import uuid
+        roster_dir = w.root / "materials" / str(uuid.uuid4())
+        roster_dir.mkdir(parents=True)
+        roster_path = roster_dir / "roster.pdf"
+        cells_path = roster_dir / "roster_cells.json"
 
         with st.spinner("Drawing fiducials and tick cells…"):
             quiz_id, cells = generate_roster_pdf(
@@ -269,8 +292,11 @@ with tab_roster:
                 class_label=class_label,
                 school_name=school_name,
                 students_per_page=int(students_per_page),
+                form_manifest=form,
             )
 
+        invalidate_after(w, "results")
+        w.results_xlsx = w.scan_draft = w.scan_context = None
         w.roster_pdf = roster_path
         w.roster_cells = cells_path
         save_ws()

@@ -7,3 +7,9 @@ __pycache__/
 .venv/
 venv/
 .env
+# Local classroom records and model prompts
+data/runs/
+data/_demo/
+
+# Downloaded public benchmark fixtures (source URLs and checksums are tracked)
+benchmarks/sources/

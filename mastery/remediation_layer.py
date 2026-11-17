@@ -118,6 +118,21 @@ def build_remediation_plan(
         raise ValueError("input xlsx has no 'cluster' column -- run "
                          "clustering_layer first")
 
+    probabilistic = "diagnostic_method" in mastery and mastery["diagnostic_method"].eq("dina").all()
+
+    def actions_for(members):
+        actions = {}
+        for skill in skills:
+            if probabilistic:
+                statuses = members[f"status_{skill}"]
+                if statuses.eq("likely_mastered").all():
+                    continue
+                actions[skill] = ("reteach" if statuses.eq("likely_not_mastered").mean() >= 0.5
+                                  else "assess")
+            elif members[skill].mean() < partial_threshold:
+                actions[skill] = "reteach"
+        return actions
+
     depths = compute_depths(prereqs, skills)
     max_depth = max(depths.values()) if depths else 0
 
@@ -127,13 +142,15 @@ def build_remediation_plan(
     for c in cluster_ids:
         members = mastery[mastery["cluster"] == c]
         centroid = members[skills].mean()
-        deficits = list(centroid[centroid < partial_threshold].index)
+        actions = actions_for(members)
+        deficits = list(actions)
         if not deficits:
             cluster_rows.append({
                 "cluster": c, "step": 0, "skill": "(all mastered)",
                 "depth": np.nan, "band": "n/a",
                 "centroid_mastery": float(centroid.mean()),
                 "n_students": len(members),
+                "action": "none",
             })
             continue
         path = topo_path(deficits, prereqs, depths)
@@ -146,6 +163,7 @@ def build_remediation_plan(
                 "band": depth_band(depths[skill], max_depth),
                 "centroid_mastery": float(centroid[skill]),
                 "n_students": len(members),
+                "action": actions[skill],
             })
 
     cluster_df = pd.DataFrame(cluster_rows)
@@ -173,13 +191,15 @@ def build_remediation_plan(
             if s_cluster < 0:
                 continue   # unscored students get no path
             s_mastery = row[skills]
-            deficits = [s for s in skills if s_mastery[s] < partial_threshold]
+            actions = actions_for(mastery.loc[[row.name]])
+            deficits = list(actions)
             if not deficits:
                 student_rows.append({
                     "student_idx": s_idx, "student_name": s_name,
                     "cluster": s_cluster, "step": 0,
                     "skill": "(all mastered)", "depth": np.nan, "band": "n/a",
                     "student_mastery": np.nan,
+                    "action": "none",
                 })
                 continue
             path = topo_path(deficits, prereqs, depths)
@@ -193,6 +213,7 @@ def build_remediation_plan(
                     "depth": depths[skill],
                     "band": depth_band(depths[skill], max_depth),
                     "student_mastery": float(s_mastery[skill]),
+                    "action": actions[skill],
                 })
         sdf = pd.DataFrame(student_rows)
         sdf.to_excel(student_paths_xlsx, index=False)

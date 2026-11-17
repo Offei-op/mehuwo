@@ -183,7 +183,7 @@ def mastery_distribution(mastery: pd.DataFrame, skills: list[str]) -> plt.Figure
 
     ax.axhline(0.5, color=PALETTE["ink_soft"], linewidth=0.7,
                linestyle="--", alpha=0.5)
-    ax.text(len(skills) - 0.5, 0.51, "partial threshold",
+    ax.text(len(skills) - 0.5, 0.51, "0.5 reference",
             ha="right", va="bottom", fontsize=8,
             color=PALETTE["ink_soft"], style="italic")
 

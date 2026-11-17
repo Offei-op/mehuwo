@@ -209,6 +209,11 @@ def _render_cluster(c_id: int, c: dict, subject: str, sty: dict) -> list:
         out.append(Paragraph(f"<i>{_safe(c['note'])}</i>", sty["body"]))
         return out
 
+    if c.get("assessment_skills"):
+        out.append(Paragraph(
+            "Assess before assigning remediation: " + _safe(", ".join(c["assessment_skills"])),
+            sty["body"],
+        ))
     if not c.get("path"):
         out.append(Paragraph("(no remediation path)", sty["body"]))
         return out

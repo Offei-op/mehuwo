@@ -26,6 +26,7 @@ import argparse
 import ast
 import json
 import re
+import sys
 from collections import defaultdict
 from fractions import Fraction
 from pathlib import Path
@@ -33,7 +34,13 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from llm_client import OllamaClient, Tool, AgentResult
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from assessment.curriculum_maps import require_approved
+from assessment.contracts import digest
+try:
+    from .llm_client import OllamaClient, Tool, AgentResult
+except ImportError:
+    from llm_client import OllamaClient, Tool, AgentResult
 
 
 # --------------------------------------------------------------------------
@@ -378,7 +385,10 @@ class BankState:
         return {
             "meta": {
                 "subject": self.spec.get("subject", ""),
+                "approved_topic_version": digest(self.spec),
+                "curriculum_source": self.spec.get("curriculum_source"),
                 "curriculum_context": self.spec.get("curriculum_context", ""),
+                "cultural_context": self.spec.get("cultural_context", ""),
                 "node_order": self.nodes,
                 "prerequisites": self.spec.get("prerequisites", {}),
                 "short_labels": self.spec.get("short_labels", {}),
@@ -547,8 +557,10 @@ When add_item returns an error, READ the error carefully and FIX ONLY the
 specific issue named. Do not rewrite the entire item from scratch. Do not
 give up and produce prose -- always retry through the tool.
 
-Keep stems short, age-appropriate, and culturally grounded per the cultural
-context. Distractors must each correspond to a SPECIFIC named misconception.
+Keep stems short, age-appropriate, and suited to the supplied classroom context.
+When no regional context is specified, use broadly familiar everyday examples
+without assuming a country, currency, or school system.
+Distractors must each correspond to a SPECIFIC named misconception.
 Use the minimum-cognitive q_vector convention: only mark skills the item
 DIRECTLY exercises, not all DAG ancestors.
 
@@ -611,6 +623,8 @@ def generate_bank(
     max_iterations: int = 200,
     verbose: bool = True,
     thinking: bool | None = None,
+    review_root: str | Path | None = None,
+    resume: bool = False,
 ) -> tuple[dict, AgentResult]:
     """Run the agentic loop until the bank is complete (or budget hit).
 
@@ -618,10 +632,23 @@ def generate_bank(
     disable Gemma 4 thinking mode for the agent loop -- substantially
     faster per iteration on weak hardware. Pass True to force it on.
     """
+    require_approved(review_root, spec)
     if client is None:
         client = OllamaClient()
 
+    from assessment.storage import atomic_json
     state = BankState(spec, target_per_skill, target_multi)
+    out = Path(output_json)
+    if resume and out.exists():
+        checkpoint = json.loads(out.read_text(encoding="utf-8"))
+        if checkpoint["meta"].get("approved_topic_version") != digest(spec):
+            raise ValueError("Checkpoint belongs to a different topic version.")
+        for item in checkpoint["single_skill_items"] + checkpoint["multi_skill_items"]:
+            restored = state.add_item({k: v for k, v in item.items() if k != "item_id"})
+            if not restored["ok"] or restored["item_id"] != item["item_id"]:
+                raise ValueError("Checkpoint item failed verification or identity checks.")
+        if state.coverage()["complete"]:
+            return state.to_bank_json(), AgentResult("Restored complete checkpoint", 0)
     tools = build_tools(state)
     prompt = _build_initial_prompt(spec, target_per_skill, target_multi)
 
@@ -634,6 +661,7 @@ def generate_bank(
             counters["verify"] += 1
         elif name == "add_item":
             if result.get("ok"):
+                atomic_json(out, state.to_bank_json())
                 counters["add_ok"] += 1
                 if verbose:
                     print(f"  + {result['item_id']}  "
@@ -735,9 +763,11 @@ def generate_bank(
     )
 
     bank = state.to_bank_json()
+    # Approval may be withdrawn while a long model run is in progress.
+    require_approved(review_root, spec)
     out = Path(output_json)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(bank, indent=2, ensure_ascii=False))
+    atomic_json(out, bank)
 
     if verbose:
         print(f"\ngenerated {len(state.single_items)} single + "
@@ -768,6 +798,8 @@ def _main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--spec", required=True,
                     help="path to topic spec JSON")
+    ap.add_argument("--review-root", required=True,
+                    help="workspace containing the explicit approval for this exact topic-spec version")
     ap.add_argument("--output", required=True,
                     help="path to write generated bank JSON")
     ap.add_argument("--target-per-skill", type=int, default=2)
@@ -799,6 +831,7 @@ def _main():
         target_multi=args.target_multi,
         max_iterations=args.max_iterations,
         thinking=args.thinking,
+        review_root=args.review_root,
     )
 
 

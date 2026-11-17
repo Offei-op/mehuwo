@@ -1,41 +1,34 @@
-"""Skill scoring layer.
+"""Skill diagnosis from per-item correctness.
 
-Inputs:
-  - results.xlsx from recognition_pipeline: rows = students, columns include
-    student_idx, student_name, item_1 .. item_N, scored.
-  - item bank JSON: defines skills (meta.node_order), single_skill_items
-    (each with target_node), and multi_skill_items (each with target_nodes).
+Default: fixed-parameter DINA inference over the bank's Q-matrix. Outputs
+posterior skill probabilities, evidence/status columns, diagnostic details,
+follow-up checks, and model assumptions in a multi-sheet workbook.
+Use --method simple for the original single-skill average baseline.
 
-Output:
-  - mastery.xlsx: rows = students, one column per skill with a value in
-    {0, 0.5, 1} (or NaN if the student wasn't scored). Plus per-student
-    summary counts.
-  - optional audit.xlsx: long-format breakdown of pure vs multi-skill
-    signal per (student, skill), so the teacher can see *why* a score
-    landed where it did.
-
-Method (lean version, as discussed):
-  Mastery on skill K = mean correctness on the single-skill items whose
-  target_node == K. Multi-skill items are NOT used in the primary score
-  (they conflate many skills); they appear in the audit so disagreements
-  are visible.
-
-Item-order assumption:
-  results.xlsx columns item_1 .. item_N correspond to the bank's items in
-  the order (single_skill_items + multi_skill_items). The sheet was
-  printed in that order; the test paper questions must be numbered to
-  match. The layer validates the count but cannot validate the ordering
-  -- responsibility lies with whoever prints the test paper.
+Input columns item_1 through item_N refer to bank single_skill_items followed
+by multi_skill_items. Column position is irrelevant; printed question order
+must match, or responses must be remapped before scoring. Blanks are missing
+evidence, 0 is incorrect, and scored=0 ignores the entire student row.
+See docs/diagnostics.md for assumptions and limits.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from assessment.contracts import read_results
+
+try:
+    from .diagnostic_model import DinaModel, mastery_status
+except ImportError:  # direct CLI invocation
+    from diagnostic_model import DinaModel, mastery_status
 
 
 def score_students(
@@ -46,21 +39,47 @@ def score_students(
     audit_xlsx: str | Path | None = None,
     partial_threshold: float = 0.5,
     mastered_threshold: float = 1.0,
+    method: str = "dina",
+    slip: float = 0.1,
+    guess: float = 0.25,
+    prior: float = 0.5,
+    confidence: float = 0.8,
+    form_manifest_json: str | Path | None = None,
 ) -> pd.DataFrame:
     """Compute per-skill mastery scores from per-item correctness."""
 
-    results = pd.read_excel(results_xlsx)
-    bank = json.loads(Path(item_bank_json).read_text())
+    bank = json.loads(Path(item_bank_json).read_text(encoding="utf-8"))
+    form = json.loads(Path(form_manifest_json).read_text(encoding="utf-8")) if form_manifest_json else None
+    results = read_results(results_xlsx, bank, form)
 
     skills: list[str] = bank["meta"]["node_order"]
     all_items: list[dict] = bank["single_skill_items"] + bank["multi_skill_items"]
 
-    item_cols = [c for c in results.columns if c.startswith("item_")]
-    if len(item_cols) != len(all_items):
+    item_cols = [f"item_{i+1}" for i in range(len(all_items))]
+    actual_cols = [c for c in results.columns if str(c).startswith("item_")]
+    if set(actual_cols) != set(item_cols):
         raise ValueError(
-            f"results has {len(item_cols)} item columns but bank has "
-            f"{len(all_items)} items -- item order/count mismatch"
+            "Results must have exactly item_1 through item_N matching bank order. "
+            f"Missing: {sorted(set(item_cols)-set(actual_cols))}; "
+            f"unexpected: {sorted(set(actual_cols)-set(item_cols))}"
         )
+    for col in ("student_idx", "student_name"):
+        if col not in results or results[col].isna().any():
+            raise ValueError(f"Missing student identity: {col}")
+    if results["student_idx"].duplicated().any():
+        raise ValueError("student_idx must be unique.")
+    for col in item_cols:
+        values = pd.to_numeric(results[col], errors="raise")
+        if not values.dropna().isin([0, 1]).all():
+            raise ValueError(f"{col}: expected 0, 1, or blank for missing evidence.")
+        results[col] = values
+    if "scored" in results and not results["scored"].isin([0, 1]).all():
+        raise ValueError("scored must contain only 0 or 1, with no blanks.")
+    if method == "dina":
+        return _score_dina(results, bank, output_xlsx, audit_xlsx,
+                           slip=slip, guess=guess, prior=prior, confidence=confidence)
+    if method != "simple":
+        raise ValueError("method must be dina or simple")
 
     # skill -> list of result column names for pure (single-skill) items
     pure_cols: dict[str, list[str]] = {s: [] for s in skills}
@@ -142,6 +161,83 @@ def score_students(
     return mastery
 
 
+def _score_dina(results, bank, output_xlsx, audit_xlsx, *, slip, guess, prior, confidence):
+    if not np.isfinite(confidence) or not 0.5 < confidence < 1:
+        raise ValueError("confidence must be strictly between 0.5 and 1.")
+    model = DinaModel(bank, slip=slip, guess=guess, prior=prior)
+    skills = model.skills
+    item_cols = [f"item_{i+1}" for i in range(len(model.items))]
+    rows, details, follow_up = [], [], []
+    for _, student in results.iterrows():
+        identity = {"student_idx": student["student_idx"], "student_name": student["student_name"]}
+        responses = student[item_cols].to_numpy(dtype=float)
+        if not student.get("scored", 1):
+            responses[:] = np.nan
+        inference = model.infer(responses)
+        statuses = [mastery_status(p, n, 1 - confidence, confidence)
+                    for p, n in zip(inference["probability"], inference["evidence"])]
+        row = {**identity, **dict(zip(skills, inference["probability"])),
+               "diagnostic_method": "dina", "diagnostic_confidence": confidence,
+               "n_items_observed": int(inference["observed"].sum()),
+               "n_skills_mastered": statuses.count("likely_mastered"),
+               "n_skills_uncertain": statuses.count("uncertain"),
+               "n_skills_unmastered": statuses.count("likely_not_mastered"),
+               "n_skills_unmeasured": statuses.count("insufficient_evidence")}
+        row["mean_mastery"] = (float(np.nanmean(inference["probability"]))
+                               if inference["evidence"].any() else np.nan)
+        for j, skill in enumerate(skills):
+            row[f"status_{skill}"] = statuses[j]
+            row[f"evidence_{skill}"] = int(inference["evidence"][j])
+            details.append({**identity, "skill": skill,
+                            "mastery_probability": inference["probability"][j],
+                            "status": statuses[j], "entropy_bits": inference["entropy"][j],
+                            "observed_items_requiring_skill": int(inference["evidence"][j])})
+        rows.append(row)
+        needs_check = any(s in {"uncertain", "insufficient_evidence"} for s in statuses)
+        if needs_check:
+            candidates = model.next_items(inference)
+            for rank, candidate in enumerate(candidates, 1):
+                follow_up.append({**identity, "rank": rank, **candidate,
+                                  "action": "Review missing response; administer if appropriate"})
+            if not candidates:
+                uncertain = [s for s, status in zip(skills, statuses)
+                             if status in {"uncertain", "insufficient_evidence"}]
+                follow_up.append({**identity, "rank": 1, "item_id": "", "item_column": "",
+                                  "skills": ", ".join(uncertain),
+                                  "expected_information_gain_bits": np.nan,
+                                  "action": "Prepare new targeted questions; current bank exhausted"})
+    mastery = pd.DataFrame(rows, columns=(list(rows[0]) if rows else
+                           ["student_idx", "student_name", *skills, "mean_mastery"]))
+    diagnostic = pd.DataFrame(details, columns=["student_idx", "student_name", "skill",
+                              "mastery_probability", "status", "entropy_bits",
+                              "observed_items_requiring_skill"])
+    follow = pd.DataFrame(follow_up, columns=["student_idx", "student_name", "rank", "item_id",
+                         "item_column", "skills", "expected_information_gain_bits", "action"])
+    metadata = pd.DataFrame([
+        {"field": "method", "value": "DINA fixed-parameter exact inference v1"},
+        {"field": "parameter_status", "value": "Assumed or supplied; not fitted or validated by this run"},
+        {"field": "prior", "value": prior},
+        {"field": "mastered_probability_threshold", "value": confidence},
+        {"field": "nonmastered_probability_threshold", "value": 1 - confidence},
+        {"field": "missing", "value": "Blank responses omitted from likelihood; scored=0 ignores entire row"},
+        {"field": "q_matrix", "value": "Uses q_vectors as supplied; prerequisite ancestors are not added"},
+    ])
+    out = Path(output_xlsx)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with pd.ExcelWriter(out, engine="openpyxl") as writer:
+        mastery.to_excel(writer, sheet_name="mastery", index=False)
+        diagnostic.to_excel(writer, sheet_name="diagnostics", index=False)
+        follow.to_excel(writer, sheet_name="follow_up", index=False)
+        metadata.to_excel(writer, sheet_name="model", index=False)
+        pd.DataFrame(model.parameters).to_excel(writer, sheet_name="item_parameters", index=False)
+    if audit_xlsx is not None:
+        Path(audit_xlsx).parent.mkdir(parents=True, exist_ok=True)
+        diagnostic.to_excel(audit_xlsx, index=False)
+    print(f"wrote {out}: DINA probabilities for {len(mastery)} students")
+    print("Parameters are assumed or supplied, not calibrated. Review uncertain skills and follow_up sheet.")
+    return mastery
+
+
 def _write_audit(
     results: pd.DataFrame,
     item_cols: list[str],
@@ -219,6 +315,12 @@ def _main():
                     help="path to write mastery.xlsx")
     ap.add_argument("--audit", default=None,
                     help="if set, write a long-format audit xlsx here")
+    ap.add_argument("--method", choices=["dina", "simple"], default="dina")
+    ap.add_argument("--slip", type=float, default=0.1)
+    ap.add_argument("--guess", type=float, default=0.25)
+    ap.add_argument("--prior", type=float, default=0.5)
+    ap.add_argument("--confidence", type=float, default=0.8)
+    ap.add_argument("--form-manifest", help="Printed-order results mapping; embedded scan manifests are read automatically")
     ap.add_argument("--partial-threshold", type=float, default=0.5,
                     help="mastery >= this is at least partial (default 0.5)")
     ap.add_argument("--mastered-threshold", type=float, default=1.0,
@@ -232,6 +334,9 @@ def _main():
         audit_xlsx=args.audit,
         partial_threshold=args.partial_threshold,
         mastered_threshold=args.mastered_threshold,
+        method=args.method, slip=args.slip, guess=args.guess,
+        prior=args.prior, confidence=args.confidence,
+        form_manifest_json=args.form_manifest,
     )
 
 

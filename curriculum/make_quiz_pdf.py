@@ -50,9 +50,13 @@ import json
 import random
 import re
 import string
+import sys
 from pathlib import Path
 from typing import Iterable
 from xml.sax.saxutils import escape
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from assessment.contracts import make_form
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -459,10 +463,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.shuffle_options:
         items = [shuffle_options(item, rng) for item in items]
 
-    build_quiz_pdf(items, meta, args.output, form_id=args.form_id)
+    form = make_form(bank, items)
+    label = f"{args.form_id} / {form['form_id']}" if args.form_id else form["form_id"]
+    build_quiz_pdf(items, meta, args.output, form_id=label)
 
     key_path = args.key_output or args.output.with_name(args.output.stem + "_key.pdf")
-    build_answer_key_pdf(items, meta, key_path, form_id=args.form_id)
+    build_answer_key_pdf(items, meta, key_path, form_id=label)
+    manifest_path = args.output.with_suffix(".form.json")
+    manifest_path.write_text(json.dumps(form, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"Form identity and question mapping: {manifest_path}")
 
     print(f"Quiz written to: {args.output}")
     print(f"Key written to:  {key_path}")

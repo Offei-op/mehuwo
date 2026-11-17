@@ -82,6 +82,7 @@ def run_bank_generator(
     model: str | None = None,
     host: str | None = None,
     thinking: bool | None = None,
+    review_root: Path | None = None,
 ) -> Iterator[tuple[str, str]]:
     """agent/bank_generator.py — the longest-running step. Streams
     item-by-item progress so the UI can show a live log."""
@@ -93,6 +94,7 @@ def run_bank_generator(
         "--max-iterations", str(max_iterations),
     ]
     if model:        cmd += ["--model", model]
+    if review_root:  cmd += ["--review-root", str(review_root)]
     if host:         cmd += ["--host", host]
     if thinking is True:  cmd += ["--thinking"]
     if thinking is False: cmd += ["--no-thinking"]
@@ -157,11 +159,15 @@ def run_recognition(
 def run_scoring(
     results: Path, bank: Path, output: Path,
     *, audit: Path | None = None,
+    method: str = "dina", slip: float = 0.1, guess: float = 0.25,
+    prior: float = 0.5, confidence: float = 0.8,
 ) -> Iterator[tuple[str, str]]:
     cmd = _py(REPO_ROOT / "recognition" / "scoring_layer.py") + [
         "--results", str(results),
         "--bank", str(bank),
         "--output", str(output),
+        "--method", method, "--slip", str(slip), "--guess", str(guess),
+        "--prior", str(prior), "--confidence", str(confidence),
     ]
     if audit: cmd += ["--audit", str(audit)]
     yield from stream_command(cmd)

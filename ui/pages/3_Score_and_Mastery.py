@@ -1,14 +1,4 @@
-"""Page 3 — Score & Mastery.
-
-Honest about the missing OCR step: provides three ways to get a
-results.xlsx:
-  1. Upload a real one (produced manually or by an external OCR step)
-  2. Generate synthetic results from the bank for demo / testing
-  3. (Placeholder) — upload scanned roster sheet. This will be enabled
-     once the recognition pipeline lands.
-
-Then runs the scoring layer to produce mastery.xlsx.
-"""
+"""Upload, recognize and review correctness, then diagnose skill mastery."""
 
 from __future__ import annotations
 
@@ -22,7 +12,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from lib.state import init_state, require_ws, save_ws, header
+from lib.state import init_state, require_ws, save_ws, header, invalidate_after
 from lib.runners import run_scoring
 from lib.viz import per_student_mean_hist, mastery_distribution
 from lib.demo import generate_synthetic_results
@@ -38,10 +28,8 @@ header(
     "Score & Mastery",
     eyebrow="step 3 of 5",
     description=(
-        "Turn per-item correctness into per-skill mastery. Currently you "
-        "must supply the results file manually (or generate synthetic "
-        "results for testing) — the OCR step that reads filled-in roster "
-        "sheets is on the roadmap but not yet built."
+        "Import results or recognize and review a roster scan, then estimate "
+        "skill mastery and identify where more evidence is needed."
     ),
 )
 
@@ -88,14 +76,41 @@ with tab_upload:
     )
     up = st.file_uploader("results.xlsx", type=["xlsx"],
                           label_visibility="collapsed")
-    if up is not None:
-        dest = w.root / "results.xlsx"
-        dest.write_bytes(up.getvalue())
-        w.results_xlsx = dest
-        save_ws()
-        st.success(f"Saved as {dest.name}")
-        time.sleep(0.3)
-        st.rerun()
+    order = st.radio("Response column order", ["Original bank order", "Printed form order"])
+    manifest_upload = st.file_uploader("Form manifest (for printed order)", type=["json"])
+    if st.button("Import results", disabled=up is None):
+        import uuid
+        from assessment.contracts import read_results
+        try:
+            bank_data = json.loads(Path(w.bank).read_text(encoding="utf-8"))
+            form = None
+            if order == "Printed form order":
+                if manifest_upload:
+                    form = json.loads(manifest_upload.getvalue())
+                elif w.quiz_manifest:
+                    form = json.loads(Path(w.quiz_manifest).read_text(encoding="utf-8"))
+                else:
+                    raise ValueError("Upload the matching form manifest.")
+            incoming = read_results(up, bank_data, form)
+            folder = w.root / "imports" / str(uuid.uuid4())
+            folder.mkdir(parents=True)
+            (folder / "original.xlsx").write_bytes(up.getvalue())
+            from assessment.contracts import digest
+            with pd.ExcelWriter(folder / "results.xlsx") as writer:
+                incoming.to_excel(writer, sheet_name="results", index=False)
+                pd.DataFrame([{"bank_version": digest(bank_data), "column_order": "canonical"}]).to_excel(
+                    writer, sheet_name="assessment_meta", index=False)
+            from assessment.contracts import digest, now
+            (folder / "provenance.json").write_text(json.dumps({
+                "bank_version": digest(bank_data), "imported_at": now(), "source_order": order,
+                "form": form,
+            }, indent=2), encoding="utf-8")
+            invalidate_after(w, "results")
+            w.results_xlsx = folder / "results.xlsx"
+            save_ws()
+            st.rerun()
+        except (ValueError, KeyError, TypeError) as exc:
+            st.error(str(exc))
 
 with tab_synthetic:
     st.markdown(
@@ -151,6 +166,7 @@ with tab_synthetic:
                 unscored_rate=float(unscored_rate),
                 seed=int(seed),
             )
+        invalidate_after(w, "results")
         w.results_xlsx = dest
         save_ws()
         st.success(f"Generated {len(df)} synthetic students.")
@@ -158,19 +174,8 @@ with tab_synthetic:
         st.rerun()
 
 with tab_ocr:
-    st.markdown(
-        '<div class="card"><h4>Not yet available</h4>'
-        '<div class="muted" style="font-size:0.88rem">Uploading a phone '
-        "photo of a filled-in roster sheet and getting per-item "
-        "correctness back is the next thing on the roadmap. The roster "
-        "sheets <em>already</em> carry ArUco fiducials and the "
-        "cells.json file already records every tick-cell position, so "
-        "the OCR step has everything it needs — the rectification, "
-        "tick-classification, and writeback code just hasn't been built "
-        "yet. For now, use one of the other tabs."
-        "</div></div>",
-        unsafe_allow_html=True,
-    )
+    from lib.scan import render_scan_review
+    render_scan_review(w)
 
 
 # =========================================================================
@@ -187,10 +192,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<p class="lead">Mastery on skill K = mean correctness on the '
-    "single-skill items whose target is K. Multi-skill items are "
-    "deliberately excluded from the primary score (they conflate skills); "
-    "they go into the optional audit file instead.</p>",
+    '<p class="lead">Estimate skill mastery from question responses. '
+    "The probabilistic model combines single- and multi-skill evidence, "
+    "allows for guesses and mistakes, and flags uncertain diagnoses.</p>",
     unsafe_allow_html=True,
 )
 
@@ -200,6 +204,22 @@ if w.mastery_xlsx and Path(w.mastery_xlsx).exists():
         f'<span class="kbd">{Path(w.mastery_xlsx).name}</span>',
         unsafe_allow_html=True,
     )
+
+method = st.selectbox("Diagnostic method", ["dina", "simple"],
+                      format_func=lambda m: "Probabilistic diagnosis (DINA)" if m == "dina"
+                      else "Single-skill averages (comparison baseline)")
+slip, guess, prior, confidence = 0.1, 0.25, 0.5, 0.8
+if method == "dina":
+    st.info("Probabilities depend on assumed item parameters and the skill mapping. "
+            "They have not been calibrated against classroom data. Uncertain means "
+            "more evidence is needed, not partial mastery.")
+    with st.expander("Model assumptions"):
+        slip = st.slider("Mistake probability when required skills are mastered", 0.01, 0.49, 0.10, 0.01)
+        guess = st.slider("Correct-answer probability without all required skills", 0.01, 0.49, 0.25, 0.01)
+        prior = st.slider("Prior mastery probability", 0.05, 0.95, 0.50, 0.05)
+        confidence = st.slider("Probability required for likely mastery", 0.60, 0.95, 0.80, 0.05)
+        st.caption("Per-item diagnostic_parameters in the bank override slip and guess. "
+                   "Blank response cells are missing evidence; use 0 for a wrong answer.")
 
 c1, c2 = st.columns([1, 3])
 with c1:
@@ -212,6 +232,7 @@ with c1:
             for stream, line in run_scoring(
                 Path(w.results_xlsx), Path(w.bank),
                 mastery_path, audit=audit_path,
+                method=method, slip=slip, guess=guess, prior=prior, confidence=confidence,
             ):
                 if stream == "exit":
                     rc = int(line)
@@ -224,6 +245,11 @@ with c1:
                     log.append(line)
 
         w.mastery_xlsx = mastery_path
+        # Downstream artifacts describe the previous diagnosis until rebuilt.
+        for attr in ("mastery_clustered_xlsx", "cluster_summary_xlsx", "cluster_paths_xlsx",
+                     "cluster_summary_narratives_xlsx", "remediation_pack_json",
+                     "cluster_report_pdf", "remediation_pack_pdf"):
+            setattr(w, attr, None)
         save_ws()
         st.success("Mastery computed.")
         time.sleep(0.3)
@@ -245,6 +271,24 @@ if w.mastery_xlsx and Path(w.mastery_xlsx).exists():
     mastery = pd.read_excel(w.mastery_xlsx)
     bank = json.loads(Path(w.bank).read_text())
     skills = bank["meta"]["node_order"]
+
+    if "diagnostic_method" in mastery and mastery["diagnostic_method"].eq("dina").any():
+        st.caption("Skill values are posterior mastery probabilities, not percent correct. "
+                   "Class averages do not establish mastery for every student.")
+        diagnostic = pd.read_excel(w.mastery_xlsx, sheet_name="diagnostics")
+        counts = diagnostic["status"].value_counts()
+        a, b, c = st.columns(3)
+        a.metric("Likely mastered skills", int(counts.get("likely_mastered", 0)))
+        b.metric("Uncertain skills", int(counts.get("uncertain", 0)))
+        c.metric("Skills without evidence", int(counts.get("insufficient_evidence", 0)))
+        selected = st.selectbox("Inspect student", mastery["student_idx"].tolist())
+        st.dataframe(diagnostic[diagnostic["student_idx"] == selected], hide_index=True)
+        with st.expander("Recommended follow-up checks", expanded=True):
+            follow = pd.read_excel(w.mastery_xlsx, sheet_name="follow_up")
+            st.dataframe(follow[follow["student_idx"] == selected], hide_index=True)
+            st.caption("Recommendations rank missing bank responses by expected information gain. "
+                       "Review omissions before reusing questions. When the bank is exhausted, "
+                       "prepare new questions for the listed skills.")
 
     n_total = len(mastery)
     n_scored = int(mastery[skills[0]].notna().sum()) if skills else 0
